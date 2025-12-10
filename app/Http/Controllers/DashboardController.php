@@ -17,6 +17,22 @@ class DashboardController extends Controller
         ]);
     }
 
+    public function students() {
+        $students = User::where('usertype', 'student')->get();
+
+        return view('admin.students', [
+            'students' => $students
+        ]);
+    }
+
+    public function teachers() {
+        $teachers = User::where('usertype', 'teacher')->get();
+
+        return view('admin.teachers', [
+            'teachers' => $teachers
+        ]);
+    }
+
     public function admin() {
         $totalStudents = User::where('usertype', 'student')->count();
         $totalTeachers = User::where('usertype', 'teacher')->count();

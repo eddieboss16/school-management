@@ -39,7 +39,7 @@
             <!-- Welcome Message -->
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
-                    <h3 class="text-xl font-semibold">Welcome, Admin!</h3>
+                    <h3 class="text-xl font-semibold">Welcome, Admin Eddie!</h3>
                     <p class="mt-2 text-gray-600">Manage your school from this dashboard.</p>
                 </div>
             </div>

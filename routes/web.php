@@ -19,6 +19,12 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/dashboard', [App\Http\Controllers\DashboardController::class, 'admin'])
     ->name('admin.dashboard');
+
+    Route::get('/admin/students', [App\Http\Controllers\DashboardController::class, 'students'])
+    ->name('admin.students');
+
+    Route::get('/admin/teachers', [App\Http\Controllers\DashboardController::class, 'teachers'])
+    ->name('admin.teachers');
 });
 
 Route::middleware(['auth', 'role:teacher'])->group(function () {
