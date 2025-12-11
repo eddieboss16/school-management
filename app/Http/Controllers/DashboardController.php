@@ -57,12 +57,43 @@ class DashboardController extends Controller
         return redirect()->route('admin.students')->with('success', 'Student created successfully.');
     }
 
+    // Teacher
     public function teachers() {
         $teachers = User::where('usertype', 'teacher')->get();
 
         return view('admin.teachers', [
             'teachers' => $teachers
         ]);
+    }
+
+    public function createTeacher() {
+        return view('admin.teachers-create');
+    }
+
+    public function storeTeacher(Request $request) {
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'password' => [
+                'required',
+                'confirmed',
+                Rules\Password::min(8)
+                ->letters()
+                ->mixedCase()
+                ->numbers()
+                ->symbols()
+            ],
+        ]);
+
+        User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'usertype' => 'teacher',
+            'password' => bcrypt($request->password),
+            'email_verified_at' => now(),
+        ]);
+
+        return redirect()->route('admin.teachers')->with('success', 'Teacher created successfully.');
     }
 
     public function admin() {

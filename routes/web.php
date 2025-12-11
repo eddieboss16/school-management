@@ -31,6 +31,12 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
     Route::get('/admin/teachers', [App\Http\Controllers\DashboardController::class, 'teachers'])
     ->name('admin.teachers');
+    
+    Route::get('/admin/teachers/create', [App\Http\Controllers\DashboardController::class, 'createTeacher'])
+    ->name('admin.teachers.create');
+
+    Route::post('/admin/teachers', [App\Http\Controllers\DashboardController::class, 'storeTeacher'])
+    ->name('admin.teachers.store');
 });
 
 Route::middleware(['auth', 'role:teacher'])->group(function () {
