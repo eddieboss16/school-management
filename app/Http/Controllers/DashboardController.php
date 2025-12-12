@@ -57,6 +57,66 @@ class DashboardController extends Controller
         return redirect()->route('admin.students')->with('success', 'Student created successfully.');
     }
 
+    public function editStudent($id) {
+        $student = User::findOrFail($id);
+
+        // Security check - make sure it's actually a student
+        if ($student->usertype !== 'student') {
+            return redirect()->route('admin.students')->with('error', 'Invalid student ID');
+        }
+
+        return view('admin.students-edit', compact('student'));
+    }
+
+    public function updateStudent(Request $request, $id) {
+        $student = User::findOrFail($id);
+
+        // Security check
+        if ($student->usertype !== 'student') {
+            return redirect()->route('admin.students')->with('error', 'Invalid student ID');
+        }
+
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $id],
+            'password' => [
+                'nullable',
+                'confirmed',
+                Rules\Password::min(8)
+                ->letters()
+                ->mixedCase()
+                ->numbers()
+                ->symbols()
+            ],
+        ]);
+
+        $student->name = $request->name;
+        $student->email = $request->email;
+
+        // Only update password if provided
+        if ($request->filled('password')) {
+            $student->password = bcrypt($request->password);
+        }
+
+        $student->save();
+
+        return redirect()->route('admin.students')->with('success', 'student updated successfully!');
+    }
+
+    public function destroyStudent($id) {
+        $student = User::findOrFail($id);
+
+        // Security check
+        if ($student->usertype !== 'student') {
+            return redirect()->route('admin.students')->with('error', 'Invalid student ID');
+        }
+
+        $student->delete();
+
+        return redirect()->route('admin.students')->with('success', 'Student deleted successfully!');
+    }
+
+
     // Teacher
     public function teachers() {
         $teachers = User::where('usertype', 'teacher')->get();
