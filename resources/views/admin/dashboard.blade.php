@@ -43,6 +43,27 @@
                     <p class="mt-2 text-gray-600">Manage your school from this dashboard.</p>
                 </div>
             </div>
+
+            <!-- Navigation Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+    <!-- Manage Students Card -->
+    <a href="{{ route('admin.students') }}" class="block bg-white overflow-hidden shadow-sm sm:rounded-lg hover:shadow-lg transition">
+        <div class="p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Manage Students</h3>
+            <p class="text-gray-600 text-sm">View, add, edit, and delete students</p>
+            <p class="text-blue-600 mt-4 font-medium">View Students →</p>
+        </div>
+    </a>
+
+    <!-- Manage Teachers Card -->
+    <a href="{{ route('admin.teachers') }}" class="block bg-white overflow-hidden shadow-sm sm:rounded-lg hover:shadow-lg transition">
+        <div class="p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Manage Teachers</h3>
+            <p class="text-gray-600 text-sm">View, add, edit, and delete teachers</p>
+            <p class="text-green-600 mt-4 font-medium">View Teachers →</p>
+        </div>
+    </a>
+</div>
         </div>
     </div>
 </x-app-layout>

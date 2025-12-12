@@ -39,9 +39,15 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     
     Route::get('/admin/teachers/create', [App\Http\Controllers\DashboardController::class, 'createTeacher'])
     ->name('admin.teachers.create');
-
     Route::post('/admin/teachers', [App\Http\Controllers\DashboardController::class, 'storeTeacher'])
     ->name('admin.teachers.store');
+
+    Route::get('/admin/teachers/{id}/edit', [App\Http\Controllers\DashboardController::class, 'editTeacher'])
+    ->name('admin.teachers.edit');
+    Route::put('/admin/teachers/{id}', [App\Http\Controllers\DashboardController::class, 'updateTeacher'])
+    ->name('admin.teachers.update');
+    Route::delete('/admin/teachers/{id}', [App\Http\Controllers\DashboardController::class, 'destroyTeacher'])
+    ->name('admin.teachers.destroy');
 });
 
 Route::middleware(['auth', 'role:teacher'])->group(function () {
