@@ -44,6 +44,11 @@
                                 @endforeach
                             </tbody>
                         </table>
+
+                        <!--Pagination links -->
+                        <div class="mt-4">
+                            {{ $students->links() }}
+                        </div>
                     @else
                         <p class="text-gray-500">No students found.</p>
                     @endif

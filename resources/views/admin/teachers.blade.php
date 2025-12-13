@@ -26,15 +26,15 @@
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
-                                @foreach($teachers as $teachers)
+                                @foreach($teachers as $teacher)
                                     <tr>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $teachers->id }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $teachers->name }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $teachers->email }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $teachers->created_at->format('M d, Y') }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $teacher->id }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $teacher->name }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $teacher->email }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $teacher->created_at->format('M d, Y') }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            <a href="{{ route('admin.teachers.edit',$teachers->id) }}" class="text-blue-600 hover:text-blue-900 mr-3">Edit</a>
-                                            <form action="{{ route('admin.teachers.destroy', $teachers->id) }}" method="POST" class="inline">
+                                            <a href="{{ route('admin.teachers.edit',$teacher->id) }}" class="text-blue-600 hover:text-blue-900 mr-3">Edit</a>
+                                            <form action="{{ route('admin.teachers.destroy', $teacher->id) }}" method="POST" class="inline">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="text-red-600 hover:text-red-900" onclick="return confirm('Are you sure you want to delete this student?')">Delete</button>
@@ -44,6 +44,11 @@
                                 @endforeach
                             </tbody>
                         </table>
+
+                        <!--Pagination links-->
+                        <div class="mt-4">
+                            {{ $teachers->links() }}
+                        </div>
                     @else
                         <p class="text-gray-500">No teachers found.</p>
                     @endif

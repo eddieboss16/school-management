@@ -20,7 +20,7 @@ class DashboardController extends Controller
     }
 
     public function students() {
-        $students = User::where('usertype', 'student')->get();
+        $students = User::where('usertype', 'student')->paginate(10);
 
         return view('admin.students', [
             'students' => $students
@@ -119,7 +119,7 @@ class DashboardController extends Controller
 
     // Teacher
     public function teachers() {
-        $teachers = User::where('usertype', 'teacher')->get();
+        $teachers = User::where('usertype', 'teacher')->paginate(10);
 
         return view('admin.teachers', [
             'teachers' => $teachers
@@ -194,7 +194,7 @@ class DashboardController extends Controller
 
         // Only update password if provided
         if ($request->filled('password')) {
-            $student->password = bcrypt($request->password);
+            $teacher->password = bcrypt($request->password);
         }
 
         $teacher->save();
