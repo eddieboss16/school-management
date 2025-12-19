@@ -20,7 +20,9 @@ class DashboardController extends Controller
     }
 
     public function students() {
-        $students = User::where('usertype', 'student')->paginate(10);
+        $students = User::where('usertype', 'student')
+        ->orderBy('created_at', 'desc')
+        ->paginate(10);
 
         return view('admin.students', [
             'students' => $students
@@ -119,7 +121,9 @@ class DashboardController extends Controller
 
     // Teacher
     public function teachers() {
-        $teachers = User::where('usertype', 'teacher')->paginate(10);
+        $teachers = User::where('usertype', 'teacher')
+        ->orderBy('created_at', 'desc')
+        ->paginate(10);
 
         return view('admin.teachers', [
             'teachers' => $teachers
