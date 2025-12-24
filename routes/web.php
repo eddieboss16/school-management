@@ -48,6 +48,22 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     ->name('admin.teachers.update');
     Route::delete('/admin/teachers/{id}', [App\Http\Controllers\DashboardController::class, 'destroyTeacher'])
     ->name('admin.teachers.destroy');
+
+    // Stream management routes
+    Route::get('/admin/streams', [App\Http\Controllers\DashboardController::class, 'streams'])
+        ->name('admin.streams');
+
+    Route::get('/admin/streams/create', [App\Http\Controllers\DashboardController::class, 'createStream'])
+        ->name('admin.streams.create');
+    Route::post('/admin/streams', [App\Http\Controllers\DashboardController::class, 'storeStream'])
+        ->name('admin.streams.store');
+        
+    Route::get('/admin/streams/{id}/edit', [App\Http\Controllers\DashboardController::class, 'editStream'])
+        ->name('admin.streams.edit');
+    Route::put('/admin/streams/{id}', [App\Http\Controllers\DashboardController::class, 'updateStream'])
+        ->name('admin.streams.update');
+    Route::delete('/admin/streams/{id}', [App\Http\Controllers\DashboardController::class, 'destroyStream'])
+        ->name('admin.streams.destroy');
 });
 
 Route::middleware(['auth', 'role:teacher'])->group(function () {

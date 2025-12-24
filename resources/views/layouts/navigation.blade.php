@@ -12,10 +12,25 @@
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        {{ __('Dashboard') }}
-                    </x-nav-link>
-                </div>
+    @if(auth()->user()->usertype === 'admin')
+        <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
+            {{ __('Dashboard') }}
+        </x-nav-link>
+        <x-nav-link :href="route('admin.students')" :active="request()->routeIs('admin.students*')">
+            {{ __('Students') }}
+        </x-nav-link>
+        <x-nav-link :href="route('admin.teachers')" :active="request()->routeIs('admin.teachers*')">
+            {{ __('Teachers') }}
+        </x-nav-link>
+        <x-nav-link :href="route('admin.streams')" :active="request()->routeIs('admin.streams*')">
+            {{ __('Streams') }}
+        </x-nav-link>
+    @else
+        <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+            {{ __('Dashboard') }}
+        </x-nav-link>
+    @endif
+</div>
             </div>
 
             <!-- Settings Dropdown -->

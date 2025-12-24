@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules;
 use App\Models\User;
+use App\Models\Grade;
+use App\Models\Stream;
 
 class DashboardController extends Controller
 {
@@ -230,5 +232,67 @@ class DashboardController extends Controller
             'totalTeachers' => $totalTeachers,
             'totalUsers' => $totalUsers,
         ]);
+    }
+
+    // streams
+    public function streams() {
+        $streams = Stream::with('grade')
+        ->orderBy('grade_id')
+        ->paginate(15);
+
+        return view('admin.streams', compact('streams'));
+    }
+
+    public function createStream() {
+        $grades = Grade::orderBy('order')->get();
+        return view('admin.streams-create', compact('grades'));
+    }
+
+    public function storeSteam(Request $request) {
+        $request->validate([
+            'grade_id' => ['required', 'exists:grades,id'],
+            'name' => ['required', 'string', 'max:10'],
+            'capacity' => ['required', 'integer', 'min:1', 'max:100'],
+        ]);
+
+        Stream::create([
+            'grade_id' => $request->grade_id,
+            'name' => $request->name,
+            'capacity' => $request->capacity,
+        ]);
+
+        return redirect()->route('admin.streams')->with('success', 'Stream created successfully!');
+    }
+
+    public function editStream($id) {
+        $stream = Stream::findOrFail($id);
+        $grades = Grade::orderBy('order')->get();
+
+        return view('admin.streams-edit', compact('stream', 'grades'));
+    }
+
+    public function updateStream(Request $request, $id) {
+        $stream = Stream::findOrFail($id);
+
+        $request->validate([
+            'grade_id' => ['required', 'exists:grades,id'],
+            'name' => ['required', 'string', 'max:10'],
+            'capacity' => ['required', 'integer', 'min:1', 'max:100'],
+        ]);
+
+        $stream->update([
+            'grade_id' => $request->grade_id,
+            'name' => $request->name,
+            'capacity' => $request->capacity,
+        ]);
+
+        return redirect()->route('admin.streams')->with('success', 'Stream updated successfully!');
+    }
+
+    public function destroyStream($id) {
+        $stream = Stream::findOrFail($id);
+        $stream->delete();
+
+        return redirect()->route('admin.streams')->with('success', 'Stream deleted successfully!');
     }
 }
