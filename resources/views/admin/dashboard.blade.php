@@ -9,7 +9,7 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
             <!-- Stats Card -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
 
                 <!-- Total Users Card -->
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
@@ -34,18 +34,26 @@
                         <p class="text-3xl font-bold text-green-600 mt-2">{{ $totalTeachers }}</p>
                     </div>
                 </div>
+
+                <!-- Total Streams Card -->
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-6">
+                        <h3 class="text-gray-500 text-sm font-medium">Total Streams</h3>
+                        <p class="text-3xl font-bold text-purple-600 mt-2">{{ $totalStreams }}</p>
+                    </div>
+                </div>
             </div>
             
             <!-- Welcome Message -->
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
-                    <h3 class="text-xl font-semibold">Welcome, Admin Eddie!</h3>
+                    <h3 class="text-xl font-semibold">Welcome, Admin Eddie.</h3>
                     <p class="mt-2 text-gray-600">Manage your school from this dashboard.</p>
                 </div>
             </div>
 
             <!-- Navigation Cards -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
     <!-- Manage Students Card -->
     <a href="{{ route('admin.students') }}" class="block bg-white overflow-hidden shadow-sm sm:rounded-lg hover:shadow-lg transition">
         <div class="p-6">
@@ -61,6 +69,15 @@
             <h3 class="text-lg font-semibold text-gray-900 mb-2">Manage Teachers</h3>
             <p class="text-gray-600 text-sm">View, add, edit, and delete teachers</p>
             <p class="text-green-600 mt-4 font-medium">View Teachers →</p>
+        </div>
+    </a>
+
+    <! -- Manage Streams Card -->
+    <a href="{{ route('admin.streams') }}" class="block bg-white overflow-hidden shadow-sm sm:rounded-lg hover:shadow-lg transition">
+        <div class="p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Manage Streams</h3>
+            <p class="text-gray-600 text-sm">View, add, edit and delete streams</p>
+            <p class="text-purple-600 mt-4 font-medium">View Streams</p>
         </div>
     </a>
 </div>

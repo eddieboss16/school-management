@@ -226,11 +226,13 @@ class DashboardController extends Controller
         $totalStudents = User::where('usertype', 'student')->count();
         $totalTeachers = User::where('usertype', 'teacher')->count();
         $totalUsers = User::count();
+        $totalStreams = Stream::count();
 
         return view('admin.dashboard', [
             'totalStudents' => $totalStudents,
             'totalTeachers' => $totalTeachers,
             'totalUsers' => $totalUsers,
+            'totalStreams' => $totalStreams,
         ]);
     }
 
@@ -248,7 +250,7 @@ class DashboardController extends Controller
         return view('admin.streams-create', compact('grades'));
     }
 
-    public function storeSteam(Request $request) {
+    public function storeStream(Request $request) {
         $request->validate([
             'grade_id' => ['required', 'exists:grades,id'],
             'name' => ['required', 'string', 'max:10'],
