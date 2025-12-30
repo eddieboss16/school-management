@@ -22,7 +22,12 @@ class User extends Authenticatable
         'email',
         'password',
         'usertype',
+        'stream_id',
     ];
+
+    public function stream() {
+        return $this->belongsTo(Stream::class);
+    }
 
     /**
      * The attributes that should be hidden for serialization.

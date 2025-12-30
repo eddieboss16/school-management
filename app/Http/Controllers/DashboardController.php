@@ -23,6 +23,7 @@ class DashboardController extends Controller
 
     public function students() {
         $students = User::where('usertype', 'student')
+        ->with('stream.grade')
         ->orderBy('created_at', 'desc')
         ->paginate(10);
 
@@ -32,13 +33,15 @@ class DashboardController extends Controller
     }
 
     public function createStudent() {
-        return view('admin.students-create');
+        $streams = Stream::with('grade')->orderBy('grade_id')->get();
+        return view('admin.students-create', compact('streams'));
     }
 
     public function storeStudent(Request $request) {
         $request->validate([
             'name' => ['required', 'string', 'Max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'stream_id' => ['nullable', 'exists:streams,id'],
             'password' => [
                 'required',
                 'confirmed',
@@ -54,6 +57,7 @@ class DashboardController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'usertype' =>'student',
+            'stream_id' => $request->stream_id,
             'password' => bcrypt($request->password),
             'email_verified_at' => now(),
         ]);
@@ -165,9 +169,9 @@ class DashboardController extends Controller
     public function editTeacher($id) {
         $teacher = User::findOrFail($id);
 
-        // Security check - make sure it's actually a student
+        // Security check - make sure it's actually a teacher
         if ($teacher->usertype !== 'teacher') {
-            return redirect()->route('admin.teachers')->with('error', 'Invalid student ID');
+            return redirect()->route('admin.teachers')->with('error', 'Invalid teacher ID');
         }
 
         return view('admin.teachers-edit', compact('teacher'));
@@ -178,7 +182,7 @@ class DashboardController extends Controller
 
         // Security check
         if ($teacher->usertype !== 'teacher') {
-            return redirect()->route('admin.teachers')->with('error', 'Invalid student ID');
+            return redirect()->route('admin.teachers')->with('error', 'Invalid teacher ID');
         }
 
         $request->validate([
