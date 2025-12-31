@@ -37,6 +37,22 @@
                             @enderror
                         </div>
 
+                        <!-- Stream selection -->
+                        <div class="mb-4">
+                            <label for="stream_id" class="block text-sm font-medium text-gray-700">Stream</label>
+                            <select name="stream_id" id="stream_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="">No Stream Assigned</option>
+                                @foreach ($streams as $stream)
+                                    <option value="{{ $stream->id }}" {{ old('stream_id', $student->stream_id) == $stream->id ? 'selected' : ''}}>
+                                        {{ $stream->grade->name }} - {{ $stream->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('stream_id')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
                         <!-- Password (optional) -->
                         <div class="mb-4">
                             <label for="password" class="block text-sm font-medium text-gray-700">New Password (leave blank to keep current)</label>

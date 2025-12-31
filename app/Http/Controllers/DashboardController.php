@@ -72,8 +72,9 @@ class DashboardController extends Controller
         if ($student->usertype !== 'student') {
             return redirect()->route('admin.students')->with('error', 'Invalid student ID');
         }
+        $streams = Stream::with('grade')->orderBy('grade_id')->get();
 
-        return view('admin.students-edit', compact('student'));
+        return view('admin.students-edit', compact('student', 'streams'));
     }
 
     public function updateStudent(Request $request, $id) {
@@ -87,6 +88,7 @@ class DashboardController extends Controller
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $id],
+            'stream_id' => ['nullable', 'exists:streams,id'],
             'password' => [
                 'nullable',
                 'confirmed',
@@ -100,6 +102,7 @@ class DashboardController extends Controller
 
         $student->name = $request->name;
         $student->email = $request->email;
+        $student->stream_id = $request->stream_id;
 
         // Only update password if provided
         if ($request->filled('password')) {
