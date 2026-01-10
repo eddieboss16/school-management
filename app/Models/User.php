@@ -29,6 +29,16 @@ class User extends Authenticatable
         return $this->belongsTo(Stream::class);
     }
 
+    // Relationship: User enrolled classes (for students)
+    public function enrolledClasses() {
+        return $this->belongsToMany(SchoolClass::class, 'enrollments', 'student_id', 'class_id');
+    }
+
+    // Relationship: User teaching classes (for teachers)
+    public function teachingClasses() {
+        return $this->hasMany(SchoolClass::class, 'teacher_id');
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *
