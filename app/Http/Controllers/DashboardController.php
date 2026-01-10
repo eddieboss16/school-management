@@ -235,12 +235,14 @@ class DashboardController extends Controller
         $totalTeachers = User::where('usertype', 'teacher')->count();
         $totalUsers = User::count();
         $totalStreams = Stream::count();
+        $totalSubjects = Subject::count();
 
         return view('admin.dashboard', [
             'totalStudents' => $totalStudents,
             'totalTeachers' => $totalTeachers,
             'totalUsers' => $totalUsers,
             'totalStreams' => $totalStreams,
+            'totalSubjects' => $totalSubjects,
         ]);
     }
 

@@ -42,6 +42,14 @@
                         <p class="text-3xl font-bold text-purple-600 mt-2">{{ $totalStreams }}</p>
                     </div>
                 </div>
+
+                <!-- Total Subjects Card -->
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-6">
+                        <h3 class="text-gray-500 text-sm font-medium">Total Subjects</h3>
+                        <p class="text-3xl font-bold text-orange-600 mt-2">{{ $totalSubjects }}</p>
+                    </div>
+                </div>
             </div>
             
             <!-- Welcome Message -->
@@ -78,6 +86,15 @@
             <h3 class="text-lg font-semibold text-gray-900 mb-2">Manage Streams</h3>
             <p class="text-gray-600 text-sm">View, add, edit and delete streams</p>
             <p class="text-purple-600 mt-4 font-medium">View Streams</p>
+        </div>
+    </a>
+
+    <!-- Manage Subjects Card -->
+    <a href="{{ route('admin.subjects') }}" class="block bg-white overflow-hidden shadow-sm sm:rounded-lg hover:shadow-lg transition">
+        <div class="p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Manage Subjects</h3>
+            <p class="text-gray-600 text-sm">View, add, edit, and delete subjects</p>
+            <p class="text-orange-600 mt-4 font-medium">View Subjects →</p>
         </div>
     </a>
 </div>

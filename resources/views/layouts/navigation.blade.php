@@ -25,6 +25,10 @@
         <x-nav-link :href="route('admin.streams')" :active="request()->routeIs('admin.streams*')">
             {{ __('Streams') }}
         </x-nav-link>
+        <x-nav-link :href="route('admin.subjects')" :active="request()->routeIs('admin.subjects*')">
+            {{ __('Subjects') }}
+        </x-nav-link>
+        @elseif (auth()->user()->usertype === 'teacher')
     @else
         <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
             {{ __('Dashboard') }}
