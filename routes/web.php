@@ -64,6 +64,22 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         ->name('admin.streams.update');
     Route::delete('/admin/streams/{id}', [App\Http\Controllers\DashboardController::class, 'destroyStream'])
         ->name('admin.streams.destroy');
+
+        // Subject management routes
+        Route::get('/admin/subjects', [App\Http\Controllers\DashboardController::class, 'subjects'])
+        ->name('admin.subjects');
+        
+        Route::get('/admin/subjects/create', [App\Http\Controllers\DashboardController::class, 'createSubject'])
+        ->name('admin.subjects.create');
+        Route::post('/admin/subjects', [App\Http\Controllers\DashboardController::class, 'storeSubject'])
+        ->name('admin.subjects.store');
+
+        Route::get('/admin/subjects/{id}/edit', [App\Http\Controllers\DashboardController::class, 'editSubject'])
+        ->name('admin.subjects.edit');
+        Route::put('/admin/subjects/{id}', [App\Http\Controllers\DashboardController::class, 'updateSubject'])
+        ->name('admin.subjects.update');
+        Route::delete('/admin/subjects/{id}', [App\Http\Controllers\DashboardController::class, 'destroySubject'])
+        ->name('admin.subjects.destroy');
 });
 
 Route::middleware(['auth', 'role:teacher'])->group(function () {

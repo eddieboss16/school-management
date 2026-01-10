@@ -8,6 +8,7 @@ use Illuminate\Validation\Rules;
 use App\Models\User;
 use App\Models\Grade;
 use App\Models\Stream;
+use App\Models\Subject;
 
 class DashboardController extends Controller
 {
@@ -82,7 +83,7 @@ class DashboardController extends Controller
 
         // Security check
         if ($student->usertype !== 'student') {
-            return redirect()->route('admin.students')->with('error', 'Invalid student ID');
+            return redirect()->route('#', 'admin.students')->with('error', 'Invalid student ID');
         }
 
         $request->validate([
@@ -303,5 +304,63 @@ class DashboardController extends Controller
         $stream->delete();
 
         return redirect()->route('admin.streams')->with('success', 'Stream deleted successfully!');
+    }
+
+    public function subjects() {
+        $subjects = Subject::orderBy('name')
+        ->paginate(15);
+
+        return view('admin.subjects', compact('subjects'));
+    }
+
+    public function createSubject() {
+        return view('admin.subjects-create');
+    }
+
+    public function storeSubject(Request $request) {
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'code' => ['required', 'string', 'max:20', 'unique:subjects'],
+            'description' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        Subject::create([
+            'name' => $request->name,
+            'code' => $request->code,
+            'description' => $request->description,
+        ]);
+
+        return redirect()->route('admin.subjects')->with('success', 'Subject created successfully!');
+    }
+
+    public function editSubject($id) {
+        $subject = Subject::findOrFail($id);
+
+        return view('admin.subjects-edit', compact('subject'));
+    }
+
+    public function updateSubject(Request $request, $id) {
+        $subject = Subject::findOrFail($id);
+
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'code' => ['required', 'string', 'max:20', 'unique:subject,code,' . $id],
+            'description' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $subject->update([
+            'name' => $request->name,
+            'code' => $request->code,
+            'description' => $request->description,
+        ]);
+
+        return redirect()->route('admin.subjects')->with('success', 'Subject updated successfully!');
+    }
+
+    public function destroySubject($id) {
+        $subject = Subject::findOrFail($id);
+        $subject->delete();
+
+        return redirect()->route('admin.subject')->with('success', 'Subject deleted successfully!');
     }
 }
