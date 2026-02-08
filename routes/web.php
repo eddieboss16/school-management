@@ -80,6 +80,20 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         ->name('admin.subjects.update');
         Route::delete('/admin/subjects/{id}', [App\Http\Controllers\DashboardController::class, 'destroySubject'])
         ->name('admin.subjects.destroy');
+
+        // Class management routes
+    Route::get('/admin/classes', [App\Http\Controllers\DashboardController::class, 'classes'])
+    ->name('admin.classes');
+    Route::get('/admin/classes/create', [App\Http\Controllers\DashboardController::class, 'createClass'])
+    ->name('admin.classes.create');
+    Route::post('/admin/classes', [App\Http\Controllers\DashboardController::class, 'storeClass'])
+    ->name('admin.classes.store');
+    Route::get('/admin/classes/{id}/edit', [App\Http\Controllers\DashboardController::class, 'editClass'])
+    ->name('admin.classes.edit');
+    Route::put('/admin/classes/{id}', [App\Http\Controllers\DashboardController::class, 'updateClass'])
+    ->name('admin.classes.update');
+    Route::delete('/admin/classes/{id}', [App\Http\Controllers\DashboardController::class, 'destroyClass'])
+    ->name('admin.classes.destroy');
 });
 
 Route::middleware(['auth', 'role:teacher'])->group(function () {
