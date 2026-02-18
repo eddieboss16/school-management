@@ -50,6 +50,14 @@
                         <p class="text-3xl font-bold text-orange-600 mt-2">{{ $totalSubjects }}</p>
                     </div>
                 </div>
+
+                <!-- Total Classes Card -->
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-6">
+                        <h3 class="text-gray-500 text-sm font-medium">Total Classes</h3>
+                        <p class="text-3xl font-bold text-red-600 mt-2">{{ $totalClasses }}</p>
+                    </div>
+                </div>
             </div>
             
             <!-- Welcome Message -->
@@ -97,6 +105,15 @@
             <p class="text-orange-600 mt-4 font-medium">View Subjects →</p>
         </div>
     </a>
+
+    <!-- Manage Classes Card -->
+<a href="{{ route('admin.classes') }}" class="block bg-white overflow-hidden shadow-sm sm:rounded-lg hover:shadow-lg transition">
+    <div class="p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">Manage Classes</h3>
+        <p class="text-gray-600 text-sm">View, add, edit, and delete classes</p>
+        <p class="text-red-600 mt-4 font-medium">View Classes →</p>
+    </div>
+</a>
 </div>
         </div>
     </div>

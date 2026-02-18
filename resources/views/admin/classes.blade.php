@@ -46,6 +46,7 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $class->capacity }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $class->students->count() }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <a href="{{ route('admin.enrollments.show', $class->id) }}" class="text-green-600 hover:text-green-900 mr-3">Enroll</a>
                                             <a href="{{ route('admin.classes.edit', $class->id) }}" class="text-blue-600 hover:text-blue-900 mr-3">Edit</a>
                                             <form action="{{ route('admin.classes.destroy', $class->id) }}" method="POST" class="inline">
                                                 @csrf

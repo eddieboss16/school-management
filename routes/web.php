@@ -94,6 +94,16 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     ->name('admin.classes.update');
     Route::delete('/admin/classes/{id}', [App\Http\Controllers\DashboardController::class, 'destroyClass'])
     ->name('admin.classes.destroy');
+
+    // Enrollment management routes
+    Route::get('/admin/classes/{id}/enrollments', [App\Http\Controllers\EnrollmentController::class, 'show'])
+        ->name('admin.enrollments.show');
+    Route::post('/admin/classes/{id}/enrollments', [App\Http\Controllers\EnrollmentController::class, 'store'])
+        ->name('admin.enrollments.store');
+    Route::delete('/admin/classes/{classId}/enrollments/{studentId}', [App\Http\Controllers\EnrollmentController::class, 'destroy'])
+        ->name('admin.enrollments.destroy');
+    Route::post('/admin/classes/{id}/enrollments/bulk', [App\Http\Controllers\EnrollmentController::class, 'bulkEnroll'])
+        ->name('admin.enrollments.bulk');
 });
 
 Route::middleware(['auth', 'role:teacher'])->group(function () {
