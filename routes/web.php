@@ -106,10 +106,8 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         ->name('admin.enrollments.bulk');
 });
 
-Route::middleware(['auth', 'role:teacher'])->group(function () {
-    Route::get('/teacher/dashboard', function () {
-        return view('teacher.dashboard');
-    })->name('teacher.dashboard');
-});
+Route::get('/teacher/dashboard', function() {
+    return (new App\Http\Controllers\DashboardController())->teacher();
+})->middleware(['auth', 'role:teacher'])->name('teacher.dashboard');
 
 require __DIR__.'/auth.php';

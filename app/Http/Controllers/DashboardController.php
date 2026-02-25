@@ -468,4 +468,19 @@ class DashboardController extends Controller
         
         return redirect()->route('admin.classes')->with('success', 'Class deleted successfully!');
     }
+
+
+    // Teacher's dashboard
+    public function teacher() {
+        $teacher = auth()->user();
+        $classes = SchoolClass::with(['grade', 'stream', 'subject', 'students'])
+        ->where('teacher_id', $teacher->id)
+        ->get();
+
+        $totalClasses = $classes->count();
+        $totalStudents = $classes->sum(function($class) {
+            return $class->students->count();
+        });
+        return view('teacher.dashboard', compact('classes', 'totalClasses', 'totalStudents'));
+    }
 }
