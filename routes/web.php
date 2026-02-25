@@ -7,7 +7,8 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'student'])->middleware(['auth', 'verified', 'role:student'])
+Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'student'])
+->middleware(['auth', 'verified', 'role:student'])
 ->name('dashboard');
 
 Route::middleware('auth')->group(function () {

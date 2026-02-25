@@ -15,12 +15,15 @@ class DashboardController extends Controller
 {
     // Student's
     public function student() {
-        $user = auth()->user();
+        $student = auth()->user();
 
-        return view('dashboard', [
-            'userName' => $user->name,
-            'userEmail' => $user->email,
-        ]);
+        $classes = $student->enrolledClasses()
+        ->with(['grade', 'stream', 'subject', 'teacher'])
+        ->get();
+
+        $totalClasses = $classes->count();
+
+        return view('dashboard', compact('student', 'classes', 'totalClasses'));
     }
 
     public function students() {
