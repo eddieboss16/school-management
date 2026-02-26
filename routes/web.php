@@ -17,6 +17,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+ // Admin
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/dashboard', [App\Http\Controllers\DashboardController::class, 'admin'])
     ->name('admin.dashboard');
@@ -107,8 +108,22 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         ->name('admin.enrollments.bulk');
 });
 
+ // Teacher
 Route::get('/teacher/dashboard', function() {
     return (new App\Http\Controllers\DashboardController())->teacher();
 })->middleware(['auth', 'role:teacher'])->name('teacher.dashboard');
+
+Route::middleware(['auth', 'role:teacher'])->group(function () {
+    Route::get('/teacher/dashboard', [App\Http\Controllers\DashboardController::class, 'teacher'])
+    ->name('teacher.dashboard');
+
+    // Attendance routes
+    Route::get('/teacher/classes/{id}/attendance/mark', [App\Http\Controllers\AttendanceController::class, 'mark'])
+    ->name('teacher.attendance.mark');
+    Route::post('/teacher/classes/{id}/attendance', [App\Http\Controllers\AttendanceController::class, 'store'])
+    ->name('teacher.attendance.store');
+    Route::get('/teacher/classes/{id}/attendance/history', [App\Http\Controllers\AttendanceController::class, 'history'])
+    ->name('teacher.attendance.history');
+});
 
 require __DIR__.'/auth.php';
