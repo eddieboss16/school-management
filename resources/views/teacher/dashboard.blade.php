@@ -36,9 +36,17 @@
                     @if($classes->count() > 0)
                         @foreach($classes as $class)
                             <div class="border rounded p-4 mb-4">
-                                <h4 class="font-semibold">{{ $class->subject->name }}</h4>
-                                <p class="text-sm text-gray-600">{{ $class->grade->name }} {{ $class->stream->name }}</p>
-                                <p class="text-sm text-gray-500">Students: {{ $class->students->count() }} / {{ $class->capacity }}</p>
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h4 class="font-semibold">{{ $class->subject->name }}</h4>
+                                        <p class="text-sm text-gray-600">{{ $class->grade->name }} {{ $class->stream->name }}</p>
+                                        <p class="text-sm text-gray-500">Students: {{ $class->students->count() }} / {{ $class->capacity }}</p>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <a href="{{ route('teacher.attendance.mark', $class->id) }}" class="bg-blue-500 hover:bg-blue-700 font-bold py-2 px-4 rounded text-sm">Mark Attendance</a>
+                                        <a href="{{ route('teacher.attendance.history', $class->id) }}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-sm">View History</a>
+                                    </div>
+                                </div>  
                             </div>
                         @endforeach
                     @else
