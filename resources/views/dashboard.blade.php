@@ -24,10 +24,28 @@
             </div>
 
             <!-- Stats Card -->
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
-                <div class="p-6">
-                    <p class="text-gray-500 text-sm">Enrolled Classes</p>
-                    <p class="text-3xl font-bold text-blue-600">{{ $totalClasses }}</p>
+            <div class="grid grid-cols-1 md:grid-col-2 gap-6 mb-6">
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
+                    <div class="p-6">
+                        <p class="text-gray-500 text-sm">Enrolled Classes</p>
+                        <p class="text-3xl font-bold text-blue-600">{{ $totalClasses }}</p>
+                    </div>
+                </div>
+            
+                <!-- Attendance Card -->
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-6">
+                        <p class="text-gray-500 text-sm">Attendance Rate</p>
+                        <p class="text-3xl font-bold text-blue-600">{{ $attendancePercentage }}%</p>
+                        <div class="flex gap-4 mt-2 text-xs text-gray-500">
+                            <span>Present: {{ $presentCount }}</span>
+                            <span>Absent: {{ $absentCount }}</span>
+                            <span>LateCount: {{ $lateCount }}</span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                    <a href="{{ route('student.attendance') }}" class="text-blue-600 hover:text-blue-800 font-medium">View My Attendance History</a>
+                </div>
                 </div>
             </div>
 

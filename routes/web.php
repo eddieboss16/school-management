@@ -11,6 +11,11 @@ Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'stud
 ->middleware(['auth', 'verified', 'role:student'])
 ->name('dashboard');
 
+// Student attendance route
+Route::get('/student/attendance', [App\Http\Controllers\DashboardController::class, 'studentAttendance'])
+    ->middleware(['auth', 'role:student'])
+    ->name('student.attendance');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

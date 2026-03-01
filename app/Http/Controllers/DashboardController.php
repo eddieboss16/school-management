@@ -5,11 +5,12 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules;
-use App\Models\User;
+use App\Models\User; 
 use App\Models\Grade;
 use App\Models\Stream;
 use App\Models\Subject;
 use App\Models\SchoolClass;
+use App\Models\Attendance;
 
 class DashboardController extends Controller
 {
@@ -17,21 +18,43 @@ class DashboardController extends Controller
     public function student() {
         $student = auth()->user();
 
+        // student's enrolled classes
         $classes = $student->enrolledClasses()
         ->with(['grade', 'stream', 'subject', 'teacher'])
         ->get();
 
         $totalClasses = $classes->count();
 
-        return view('dashboard', compact('student', 'classes', 'totalClasses'));
+        // Get attendance statistics
+        $totalAttendance = Attendance::where('student_id', $student->id)->count();
+        $presentCount = Attendance::where('student_id', $student->id)->where('status', 'present')->count();
+        $absentCount = Attendance::where('student_id', $student->id)->where('status', 'absent')->count();
+        $lateCount = Attendance::where('student_id', $student->id)->where('status', 'late')->count();
+
+        $attendancePercentage = $totalAttendance > 0 ? round(($presentCount / $totalAttendance) * 100, 1) : 0;
+
+        return view('dashboard', compact('student', 'classes', 'totalClasses', 'attendancePercentage', 'presentCount', 'absentCount', 'lateCount'));
     }
 
+    public function StudentAttendance() {
+        $student = auth()->user();
+
+        // Get all attendance records for student
+        $attendanceRecords = Attendance::where('student_id', $student->id)
+            ->with(['class.subject', 'class.teacher'])
+            ->orderBy('date', 'desc')
+            ->paginate(20);
+
+        return view('student.attendance', compact('student', 'attendanceRecords'));
+    }
+
+    // Admin
     public function students() {
         $students = User::where('usertype', 'student')
         ->with('stream.grade')
         ->orderBy('created_at', 'desc')
         ->paginate(10);
-
+ 
         return view('admin.students', [
             'students' => $students
         ]);
