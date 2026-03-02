@@ -129,6 +129,14 @@ Route::middleware(['auth', 'role:teacher'])->group(function () {
     ->name('teacher.attendance.store');
     Route::get('/teacher/classes/{id}/attendance/history', [App\Http\Controllers\AttendanceController::class, 'history'])
     ->name('teacher.attendance.history');
+
+    // Grade routes
+    Route::get('/teacher/classes/{id}/grades/enter', [App\Http\Controllers\GradeController::class, 'enter'])
+    ->name('teacher.grades.enter');
+    Route::post('/teacher/classes/{id}/grades', [App\Http\Controllers\GradeController::class, 'store'])
+    ->name('teacher.grades.store');
+    Route::get('/teacher/classes/{id}/grade', [App\Http\Controllers\GradeController::class, 'view'])
+    ->name('teacher.grades.view');
 });
 
 require __DIR__.'/auth.php';

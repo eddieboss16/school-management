@@ -42,10 +42,21 @@
                                         <p class="text-sm text-gray-600">{{ $class->grade->name }} {{ $class->stream->name }}</p>
                                         <p class="text-sm text-gray-500">Students: {{ $class->students->count() }} / {{ $class->capacity }}</p>
                                     </div>
-                                    <div class="flex gap-2">
-                                        <a href="{{ route('teacher.attendance.mark', $class->id) }}" class="bg-blue-500 hover:bg-blue-700 font-bold py-2 px-4 rounded text-sm">Mark Attendance</a>
-                                        <a href="{{ route('teacher.attendance.history', $class->id) }}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-sm">View History</a>
-                                    </div>
+                                    <div class="flex flex-col gap-2">
+                                        <div class="flex gap-2">
+                                            <a href="{{ route('teacher.attendance.mark', $class->id) }}" class="bg-blue-500 hover:bg-blue-700 font-bold py-2 px-4 rounded text-sm">Mark Attendance</a>
+                                            <a href="{{ route('teacher.attendance.history', $class->id) }}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-sm">View History</a>
+                                        </div>
+                                        <div class="flex gap-2">
+                                            <a href="{{ route('teacher.grades.enter', $class->id) }}" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded text-sm">
+                                                Enter Grades
+                                            </a>
+                                            <a href="{{ route('teacher.grades.view', $class->id) }}" 
+                                            class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded text-sm">
+                                                View Grades
+                                            </a>
+                                        </div>
+                                    </div> 
                                 </div>  
                             </div>
                         @endforeach
