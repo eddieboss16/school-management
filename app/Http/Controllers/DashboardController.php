@@ -11,6 +11,7 @@ use App\Models\Stream;
 use App\Models\Subject;
 use App\Models\SchoolClass;
 use App\Models\Attendance;
+use App\Models\StudentGrade;
 
 class DashboardController extends Controller
 {
@@ -46,6 +47,19 @@ class DashboardController extends Controller
             ->paginate(20);
 
         return view('student.attendance', compact('student', 'attendanceRecords'));
+    }
+
+    public function studentGrades() {
+        $student = auth()->user();
+
+        // Get all grades for the student grouped by class
+        $grades = StudentGrade::where('student_id', $student->id)
+        ->with(['class.subject', 'class.teacher'])
+        ->orderBy('assessment_date', 'desc')
+        ->get()
+        ->groupBy('class_id');
+
+        return view('student.grades', compact('student', 'grades'));
     }
 
     // Admin

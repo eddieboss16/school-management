@@ -44,8 +44,20 @@
                         </div>
                     </div>
                     <div class="p-6">
-                    <a href="{{ route('student.attendance') }}" class="text-blue-600 hover:text-blue-800 font-medium">View My Attendance History</a>
-                </div>
+                    
+                    </div>
+
+                    <!-- View Attendance Button -->
+                    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
+                        <div class="p-6 flex justify-between">
+                            <a href="{{ route('student.attendance') }}" class="text-blue-600 hover:text-blue-800 font-medium">
+                                View My Attendance History
+                            </a>
+                            <a href="{{ route('student.grades') }}" class="text-green-600 hover:text-green-800 font-medium">
+                                View My Grades →
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
 
