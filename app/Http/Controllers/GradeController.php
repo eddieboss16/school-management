@@ -73,4 +73,75 @@ class GradeController extends Controller
         
         return view('teacher.grades-view', compact('class', 'grades'));
     }
+    // Edit a specific grade assessment
+    public function edit($classId, $assessmentType)
+    {
+        $teacher = auth()->user();
+        
+        $class = SchoolClass::with(['grade', 'stream', 'subject', 'students'])
+            ->where('teacher_id', $teacher->id)
+            ->findOrFail($classId);
+        
+        // Get all grades for this assessment
+        $grades = StudentGrade::where('class_id', $classId)
+            ->where('assessment_type', $assessmentType)
+            ->with('student')
+            ->get()
+            ->keyBy('student_id');
+        
+        if ($grades->isEmpty()) {
+            return redirect()->route('teacher.grades.view', $classId)
+                ->with('error', 'Assessment not found.');
+        }
+        
+        $assessmentInfo = $grades->first();
+        
+        return view('teacher.grades-edit', compact('class', 'grades', 'assessmentInfo', 'assessmentType'));
+    }
+
+    // Update grades for an assessment
+    public function update(Request $request, $classId, $assessmentType)
+    {
+        $teacher = auth()->user();
+        
+        $class = SchoolClass::where('teacher_id', $teacher->id)->findOrFail($classId);
+        
+        $request->validate([
+            'assessment_date' => ['required', 'date'],
+            'max_score' => ['required', 'numeric', 'min:1'],
+            'grades' => ['required', 'array'],
+            'grades.*.score' => ['required', 'numeric', 'min:0'],
+        ]);
+        
+        // Update each grade record
+        foreach ($request->grades as $gradeId => $gradeData) {
+            $grade = StudentGrade::findOrFail($gradeId);
+            
+            $grade->update([
+                'score' => $gradeData['score'],
+                'max_score' => $request->max_score,
+                'assessment_date' => $request->assessment_date,
+                'remarks' => $gradeData['remarks'] ?? null,
+            ]);
+        }
+        
+        return redirect()->route('teacher.grades.view', $classId)
+            ->with('success', 'Grades updated successfully for ' . $assessmentType);
+    }
+
+    // Delete an entire assessment
+    public function destroy($classId, $assessmentType)
+    {
+        $teacher = auth()->user();
+        
+        $class = SchoolClass::where('teacher_id', $teacher->id)->findOrFail($classId);
+        
+        // Delete all grades for this assessment
+        StudentGrade::where('class_id', $classId)
+            ->where('assessment_type', $assessmentType)
+            ->delete();
+        
+        return redirect()->route('teacher.grades.view', $classId)
+            ->with('success', 'Assessment deleted successfully.');
+    }
 }

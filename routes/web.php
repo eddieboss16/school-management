@@ -142,6 +142,14 @@ Route::middleware(['auth', 'role:teacher'])->group(function () {
     ->name('teacher.grades.store');
     Route::get('/teacher/classes/{id}/grade', [App\Http\Controllers\GradeController::class, 'view'])
     ->name('teacher.grades.view');
+
+    // Add these new routes
+    Route::get('/teacher/classes/{id}/grades/{assessmentType}/edit', [App\Http\Controllers\GradeController::class, 'edit'])
+    ->name('teacher.grades.edit');
+    Route::put('/teacher/classes/{id}/grades/{assessmentType}', [App\Http\Controllers\GradeController::class, 'update'])
+    ->name('teacher.grades.update');
+    Route::delete('/teacher/classes/{id}/grades/{assessmentType}', [App\Http\Controllers\GradeController::class, 'destroy'])
+    ->name('teacher.grades.destroy');
 });
 
 require __DIR__.'/auth.php';

@@ -35,20 +35,34 @@
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-4">
                         <div class="p-6">
                             <div class="flex justify-between items-center mb-4">
-                                <div>
-                                    <h4 class="font-semibold text-lg">{{ $assessmentType }}</h4>
-                                    <p class="text-sm text-gray-500">
-                                        {{ $assessmentGrades->first()->assessment_date->format('M d, Y') }} 
-                                        | Max Score: {{ $assessmentGrades->first()->max_score }}
-                                    </p>
-                                </div>
-                                <div class="text-right">
+                            <div>
+                                <h4 class="font-semibold text-lg">{{ $assessmentType }}</h4>
+                                <p class="text-sm text-gray-500">
+                                    {{ $assessmentGrades->first()->assessment_date->format('M d, Y') }} 
+                                    | Max Score: {{ $assessmentGrades->first()->max_score }}
+                                </p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="text-right mr-4">
                                     <p class="text-sm text-gray-500">Average</p>
                                     <p class="text-2xl font-bold text-blue-600">
                                         {{ round($assessmentGrades->avg('percentage'), 1) }}%
                                     </p>
                                 </div>
+                                <a href="{{ route('teacher.grades.edit', [$class->id, $assessmentType]) }}" 
+                                class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded text-sm">
+                                    Edit
+                                </a>
+                                <form action="{{ route('teacher.grades.destroy', [$class->id, $assessmentType]) }}" method="POST" class="inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded text-sm"
+                                        onclick="return confirm('Delete all grades for {{ $assessmentType }}? This cannot be undone.')">
+                                        Delete
+                                    </button>
+                                </form>
                             </div>
+                        </div>
 
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
