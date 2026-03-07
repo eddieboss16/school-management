@@ -21,6 +21,11 @@ Route::get('/student/grades', [App\Http\Controllers\DashboardController::class, 
 ->middleware(['auth', 'role:student'])
 ->name('student.grades');
 
+// Student report card route
+Route::get('/student/report-card', function() {
+    return redirect()->route('admin.reports.generate', auth()->id());
+})->middleware(['auth', 'role:student'])->name('student.report');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -116,6 +121,12 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         ->name('admin.enrollments.destroy');
     Route::post('/admin/classes/{id}/enrollments/bulk', [App\Http\Controllers\EnrollmentController::class, 'bulkEnroll'])
         ->name('admin.enrollments.bulk');
+
+        // Report card routes
+    Route::get('/admin/reports', [App\Http\Controllers\ReportCardController::class, 'index'])
+        ->name('admin.reports.index');
+    Route::get('/admin/reports/student/{id}', [App\Http\Controllers\ReportCardController::class, 'generate'])
+        ->name('admin.reports.generate');
 });
 
  // Teacher

@@ -23,6 +23,7 @@ class User extends Authenticatable
         'password',
         'usertype',
         'stream_id',
+        'admission_number',
     ];
 
     public function stream() {

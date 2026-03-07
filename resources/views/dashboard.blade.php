@@ -56,6 +56,9 @@
                             <a href="{{ route('student.grades') }}" class="text-green-600 hover:text-green-800 font-medium">
                                 View My Grades →
                             </a>
+                            <a href="{{ route('student.report') }}" class="text-indigo-600 hover:text-indigo-800 font-medium">
+                                View My Report Card →
+                            </a>
                         </div>
                     </div>
                 </div>

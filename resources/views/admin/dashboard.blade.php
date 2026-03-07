@@ -106,14 +106,22 @@
         </div>
     </a>
 
-    <!-- Manage Classes Card -->
-<a href="{{ route('admin.classes') }}" class="block bg-white overflow-hidden shadow-sm sm:rounded-lg hover:shadow-lg transition">
-    <div class="p-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-2">Manage Classes</h3>
-        <p class="text-gray-600 text-sm">View, add, edit, and delete classes</p>
-        <p class="text-red-600 mt-4 font-medium">View Classes →</p>
-    </div>
-</a>
+        <!-- Manage Classes Card -->
+    <a href="{{ route('admin.classes') }}" class="block bg-white overflow-hidden shadow-sm sm:rounded-lg hover:shadow-lg transition">
+        <div class="p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Manage Classes</h3>
+            <p class="text-gray-600 text-sm">View, add, edit, and delete classes</p>
+            <p class="text-red-600 mt-4 font-medium">View Classes →</p>
+        </div>
+    </a>
+    <!-- Manage Reports Card -->
+    <a href="{{ route('admin.reports.index') }}" class="block bg-white overflow-hidden shadow-sm sm:rounded-lg hover:shadow-lg transition">
+        <div class="p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Student Reports</h3>
+            <p class="text-gray-600 text-sm">Generate report cards for students</p>
+            <p class="text-indigo-600 mt-4 font-medium">View Reports →</p>
+        </div>
+    </a>
 </div>
         </div>
     </div>
