@@ -71,7 +71,7 @@
                                         <div class="border rounded-lg p-4">
                                             <div class="flex items-center justify-between">
                                                 <div class="flex-1">
-                                                    <p class="font-medium">{{ $student->name }}</p>
+                                                    <p class="font-medium">{{ $student->admission_number ?? 'N/A' }} - {{ $student->name }}</p>
                                                     <p class="text-sm text-gray-500">{{ $student->email }}</p>
                                                 </div>
                                                 <div class="flex gap-4 items-center">

@@ -70,7 +70,7 @@
                                         class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                         @foreach($availableStudents as $student)
                                             <option value="{{ $student->id }}" data-name="{{ strtolower($student->name) }}" data-email="{{ strtolower($student->email) }}">
-                                                {{ $student->name }} ({{ $student->email }})
+                                                {{ $student->admission_number ?? 'N/A' }} - {{ $student->name }} ({{ $student->email }})
                                             </option>
                                         @endforeach
                                     </select>
@@ -128,6 +128,7 @@
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Admission No.</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stream</th>
@@ -138,6 +139,7 @@
                                 @foreach($class->students as $index => $student)
                                     <tr>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $index + 1 }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $student->admission_number ?? 'N/A' }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $student->name }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $student->email }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

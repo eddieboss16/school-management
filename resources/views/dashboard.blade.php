@@ -13,6 +13,7 @@
                 <div class="p-6">
                     <h3 class="text-2xl font-bold mb-2">Welcome, {{ $student->name }}!</h3>
                     <div class="text-gray-600 space-y-1">
+                        <p><strong>Admission Number:</strong> {{ $student->admission_number ?? 'Not assigned' }}</p>
                         <p><strong>Email:</strong> {{ $student->email }}</p>
                         @if($student->stream)
                             <p><strong>Class:</strong> {{ $student->stream->grade->name }} {{ $student->stream->name }}</p>
