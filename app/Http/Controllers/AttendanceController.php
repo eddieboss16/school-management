@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\SchoolClass;
 use App\Models\Attendance;
+use App\Models\Term;
 use Carbon\Carbon;
 
 class AttendanceController extends Controller
@@ -48,11 +49,14 @@ class AttendanceController extends Controller
         ->where('date', $date)
         ->delete();
 
+        $activeTerm = Term::activeTerm();
+
         // Create new attendance records
         foreach ($request->attendance as $studentId => $status) {
             Attendance::create([
                 'class_id' => $classId,
                 'student_id' => $studentId,
+                'term_id' => $activeTerm?->id,
                 'date' => $date,
                 'status' => $status,
                 'notes' => $request->notes[$studentId] ?? null,
@@ -72,9 +76,8 @@ class AttendanceController extends Controller
         ->where('teacher_id', $teacher->id)
         ->findOrFail($classId);
 
-        // Get attendance grouped by date(last 30 days)
+        // Get all attendance grouped by date
         $attendanceRecords = Attendance::where('class_id', $classId)
-        ->where('date', '>=', Carbon::now()->subDays(30))
         ->with('student')
         ->orderBy('date', 'desc')
         ->get()

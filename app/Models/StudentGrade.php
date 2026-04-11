@@ -4,16 +4,18 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class StudentGrade extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'student_grades';
 
     protected $fillable = [
         'class_id',
         'student_id',
+        'term_id',
         'assessment_type',
         'score',
         'max_score',
@@ -39,6 +41,10 @@ class StudentGrade extends Model
 
     public function enteredBy() {
         return $this->belongsTo(User::class, 'entered_by');
+    }
+
+    public function term() {
+        return $this->belongsTo(Term::class);
     }
 
     // Helper method to get percentage

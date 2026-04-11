@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\SchoolClass;
 use App\Models\StudentGrade;
+use App\Models\Term;
 
 class GradeController extends Controller
 {
@@ -35,12 +36,15 @@ class GradeController extends Controller
             'grades.*.score' => ['required', 'numeric', 'min:0'],
         ]);
         
+        $activeTerm = Term::activeTerm();
+
         // Create grade records for each student
         foreach ($request->grades as $studentId => $gradeData) {
             if (isset($gradeData['score'])) {
                 StudentGrade::create([
                     'class_id' => $classId,
                     'student_id' => $studentId,
+                    'term_id' => $activeTerm?->id,
                     'assessment_type' => $request->assessment_type,
                     'score' => $gradeData['score'],
                     'max_score' => $request->max_score,
@@ -113,10 +117,10 @@ class GradeController extends Controller
             'grades.*.score' => ['required', 'numeric', 'min:0'],
         ]);
         
-        // Update each grade record
+        // Update each grade record - verify it belongs to this class
         foreach ($request->grades as $gradeId => $gradeData) {
-            $grade = StudentGrade::findOrFail($gradeId);
-            
+            $grade = StudentGrade::where('class_id', $classId)->findOrFail($gradeId);
+
             $grade->update([
                 'score' => $gradeData['score'],
                 'max_score' => $request->max_score,

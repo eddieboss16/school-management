@@ -122,6 +122,15 @@
             <p class="text-indigo-600 mt-4 font-medium">View Reports →</p>
         </div>
     </a>
+
+    <!-- Manage Terms Card -->
+    <a href="{{ route('admin.terms') }}" class="block bg-white overflow-hidden shadow-sm sm:rounded-lg hover:shadow-lg transition">
+        <div class="p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Manage Terms</h3>
+            <p class="text-gray-600 text-sm">Create and manage school terms/semesters</p>
+            <p class="text-teal-600 mt-4 font-medium">View Terms →</p>
+        </div>
+    </a>
 </div>
         </div>
     </div>

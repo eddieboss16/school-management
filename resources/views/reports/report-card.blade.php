@@ -14,10 +14,21 @@
 </head>
 <body class="bg-gray-100">
     
-    <!-- Print Button -->
-    <div class="no-print fixed top-4 right-4">
+    <!-- Controls -->
+    <div class="no-print fixed top-4 right-4 flex gap-3">
+        @auth
+            @if(auth()->user()->usertype === 'admin')
+                <a href="{{ route('admin.reports.pdf', $student->id) }}" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-6 rounded shadow-lg">
+                    Download PDF
+                </a>
+            @elseif(auth()->user()->usertype === 'student')
+                <a href="{{ route('student.report.pdf') }}" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-6 rounded shadow-lg">
+                    Download PDF
+                </a>
+            @endif
+        @endauth
         <button onclick="window.print()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded shadow-lg">
-            Print Report Card
+            Print
         </button>
     </div>
 

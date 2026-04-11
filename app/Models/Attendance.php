@@ -4,16 +4,18 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Attendance extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'attendances';
 
     protected $fillable = [
         'class_id',
         'student_id',
+        'term_id',
         'date',
         'status',
         'notes',
@@ -35,5 +37,9 @@ class Attendance extends Model
 
     public function markedBy() {
         return $this->belongsTo(User::class, 'marked_by');
+    }
+
+    public function term() {
+        return $this->belongsTo(Term::class);
     }
 }

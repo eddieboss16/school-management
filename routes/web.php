@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\TeacherController;
 use App\Http\Controllers\Admin\StreamController;
 use App\Http\Controllers\Admin\SubjectController;
 use App\Http\Controllers\Admin\ClassController;
+use App\Http\Controllers\Admin\TermController;
 use App\Http\Controllers\Parent\DashboardController as ParentDashboardController;
 use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
 use App\Http\Controllers\Teacher\DashboardController as TeacherDashboardController;
@@ -37,6 +38,10 @@ Route::get('/student/grades', [StudentDashboardController::class, 'grades'])
 // Student report card route
 Route::get('/student/report-card', [ReportCardController::class, 'studentReportCard'])
 ->middleware(['auth', 'role:student'])->name('student.report');
+
+// Student PDF download
+Route::get('/student/report-card/pdf', [ReportCardController::class, 'studentDownloadPdf'])
+->middleware(['auth', 'role:student'])->name('student.report.pdf');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -109,6 +114,16 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         ->name('admin.reports.index');
     Route::get('/admin/reports/student/{id}', [ReportCardController::class, 'generate'])
         ->name('admin.reports.generate');
+    Route::get('/admin/reports/student/{id}/pdf', [ReportCardController::class, 'downloadPdf'])
+        ->name('admin.reports.pdf');
+
+    // Term management routes
+    Route::get('/admin/terms', [TermController::class, 'index'])->name('admin.terms');
+    Route::get('/admin/terms/create', [TermController::class, 'create'])->name('admin.terms.create');
+    Route::post('/admin/terms', [TermController::class, 'store'])->name('admin.terms.store');
+    Route::get('/admin/terms/{id}/edit', [TermController::class, 'edit'])->name('admin.terms.edit');
+    Route::put('/admin/terms/{id}', [TermController::class, 'update'])->name('admin.terms.update');
+    Route::delete('/admin/terms/{id}', [TermController::class, 'destroy'])->name('admin.terms.destroy');
 });
 
  // Teacher
