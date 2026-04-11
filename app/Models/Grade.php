@@ -19,4 +19,9 @@ class Grade extends Model
     public function streams() {
         return $this->hasMany(Stream::class);
     }
+
+    // Relationship: Grade has many classes
+    public function classes() {
+        return $this->hasMany(SchoolClass::class);
+    }
 }

@@ -33,6 +33,7 @@ class AuthenticatedSessionController extends Controller
             'admin' => redirect()->intended(route('admin.dashboard', absolute: false)),
             'teacher' => redirect()->intended(route('teacher.dashboard', absolute: false)),
             'student' => redirect()->intended(route('dashboard', absolute: false)),
+            'parent' => redirect()->intended(route('parent.dashboard', absolute: false)),
             default => redirect()->intended(route('dashboard', absolute: false)),
         };
     }

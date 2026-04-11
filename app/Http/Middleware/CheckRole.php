@@ -23,6 +23,7 @@ class CheckRole
                 'admin' => redirect('/admin/dashboard')->with('error', 'Access denied.'),
                 'teacher' => redirect('/teacher/dashboard')->with('error', 'Access denied.'),
                 'student' => redirect('/dashboard')->with('error', 'Access denied.'),
+                'parent' => redirect('/parent/dashboard')->with('error', 'Access denied.'),
                 default => redirect('/login'),
             };
         }

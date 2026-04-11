@@ -13,6 +13,8 @@ use App\Http\Controllers\Admin\StreamController;
 use App\Http\Controllers\Admin\SubjectController;
 use App\Http\Controllers\Admin\ClassController;
 use App\Http\Controllers\Parent\DashboardController as ParentDashboardController;
+use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
+use App\Http\Controllers\Teacher\DashboardController as TeacherDashboardController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -140,8 +142,10 @@ Route::middleware(['auth', 'role:teacher'])->group(function () {
 
 use App\Http\Controllers\Auth\ParentRegistrationController;
 
-Route::get('/parent/register', [ParentRegistrationController::class, 'create'])->name('parent.register');
-Route::post('/parent/register', [ParentRegistrationController::class, 'store']);
+Route::middleware('guest')->group(function () {
+    Route::get('/parent/register', [ParentRegistrationController::class, 'create'])->name('parent.register');
+    Route::post('/parent/register', [ParentRegistrationController::class, 'store'])->name('parent.register.store');
+});
 
 require __DIR__.'/auth.php';
 

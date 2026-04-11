@@ -24,6 +24,7 @@ class User extends Authenticatable
         'usertype',
         'stream_id',
         'admission_number',
+        'parent_id',
     ];
 
     public function parent() {
