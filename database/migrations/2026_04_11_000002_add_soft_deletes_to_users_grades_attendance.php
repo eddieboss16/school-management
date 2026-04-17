@@ -8,31 +8,47 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->softDeletes();
-        });
+        if (!Schema::hasColumn('users', 'deleted_at')) {
+            Schema::table('users', function (Blueprint $table) {
+                $table->softDeletes();
+            });
+        }
 
-        Schema::table('student_grades', function (Blueprint $table) {
-            $table->softDeletes();
-        });
+        if (!Schema::hasColumn('student_grades', 'deleted_at')) {
+            Schema::table('student_grades', function (Blueprint $table) {
+                $table->softDeletes();
+            });
+        }
 
-        Schema::table('attendances', function (Blueprint $table) {
-            $table->softDeletes();
-        });
+        // The attendance table was originally created as 'attendance' (singular).
+        // Support both names so this migration runs cleanly on both fresh and existing DBs.
+        $attendanceTable = Schema::hasTable('attendances') ? 'attendances' : 'attendance';
+        if (!Schema::hasColumn($attendanceTable, 'deleted_at')) {
+            Schema::table($attendanceTable, function (Blueprint $table) {
+                $table->softDeletes();
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropSoftDeletes();
-        });
+        if (Schema::hasColumn('users', 'deleted_at')) {
+            Schema::table('users', function (Blueprint $table) {
+                $table->dropSoftDeletes();
+            });
+        }
 
-        Schema::table('student_grades', function (Blueprint $table) {
-            $table->dropSoftDeletes();
-        });
+        if (Schema::hasColumn('student_grades', 'deleted_at')) {
+            Schema::table('student_grades', function (Blueprint $table) {
+                $table->dropSoftDeletes();
+            });
+        }
 
-        Schema::table('attendances', function (Blueprint $table) {
-            $table->dropSoftDeletes();
-        });
+        $attendanceTable = Schema::hasTable('attendances') ? 'attendances' : 'attendance';
+        if (Schema::hasColumn($attendanceTable, 'deleted_at')) {
+            Schema::table($attendanceTable, function (Blueprint $table) {
+                $table->dropSoftDeletes();
+            });
+        }
     }
 };

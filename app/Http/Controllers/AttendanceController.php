@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Models\SchoolClass;
 use App\Models\Attendance;
 use App\Models\Term;
+use App\Models\User;
+use App\Notifications\StudentAbsentNotification;
 use Carbon\Carbon;
 
 class AttendanceController extends Controller
@@ -51,17 +53,33 @@ class AttendanceController extends Controller
 
         $activeTerm = Term::activeTerm();
 
+        // Pre-load students with their parent for notification
+        $studentMap = User::whereIn('id', array_keys($request->attendance))
+            ->with('parent')
+            ->get()
+            ->keyBy('id');
+
         // Create new attendance records
         foreach ($request->attendance as $studentId => $status) {
             Attendance::create([
-                'class_id' => $classId,
+                'class_id'   => $classId,
                 'student_id' => $studentId,
-                'term_id' => $activeTerm?->id,
-                'date' => $date,
-                'status' => $status,
-                'notes' => $request->notes[$studentId] ?? null,
-                'marked_by' => $teacher->id,
+                'term_id'    => $activeTerm?->id,
+                'date'       => $date,
+                'status'     => $status,
+                'notes'      => $request->notes[$studentId] ?? null,
+                'marked_by'  => $teacher->id,
             ]);
+
+            // Notify parent if child is absent or late
+            if (in_array($status, ['absent', 'late'])) {
+                $student = $studentMap[$studentId] ?? null;
+                if ($student && $student->parent && $student->parent->email) {
+                    $student->parent->notify(
+                        new StudentAbsentNotification($student, $class, $status, $date)
+                    );
+                }
+            }
         }
 
         return redirect()->route('teacher.attendance.history', $classId)

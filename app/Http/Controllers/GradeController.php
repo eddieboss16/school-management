@@ -7,6 +7,9 @@ use Illuminate\Http\Request;
 use App\Models\SchoolClass;
 use App\Models\StudentGrade;
 use App\Models\Term;
+use App\Models\User;
+use App\Notifications\GradesPostedNotification;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class GradeController extends Controller
 {
@@ -38,23 +41,45 @@ class GradeController extends Controller
         
         $activeTerm = Term::activeTerm();
 
+        // Pre-load class with relations needed for notification
+        $class->loadMissing(['grade', 'stream', 'subject']);
+
+        // Pre-load students with their parent for notification
+        $studentIds = array_keys(array_filter($request->grades, fn($g) => isset($g['score'])));
+        $studentMap = User::whereIn('id', $studentIds)
+            ->with('parent')
+            ->get()
+            ->keyBy('id');
+
         // Create grade records for each student
         foreach ($request->grades as $studentId => $gradeData) {
             if (isset($gradeData['score'])) {
+                $score      = (float) $gradeData['score'];
+                $maxScore   = (float) $request->max_score;
+                $percentage = $maxScore > 0 ? round(($score / $maxScore) * 100, 2) : 0;
+
                 StudentGrade::create([
-                    'class_id' => $classId,
-                    'student_id' => $studentId,
-                    'term_id' => $activeTerm?->id,
+                    'class_id'        => $classId,
+                    'student_id'      => $studentId,
+                    'term_id'         => $activeTerm?->id,
                     'assessment_type' => $request->assessment_type,
-                    'score' => $gradeData['score'],
-                    'max_score' => $request->max_score,
+                    'score'           => $score,
+                    'max_score'       => $maxScore,
                     'assessment_date' => $request->assessment_date,
-                    'remarks' => $gradeData['remarks'] ?? null,
-                    'entered_by' => $teacher->id,
+                    'remarks'         => $gradeData['remarks'] ?? null,
+                    'entered_by'      => $teacher->id,
                 ]);
+
+                // Notify parent that grades have been posted
+                $student = $studentMap[$studentId] ?? null;
+                if ($student && $student->parent && $student->parent->email) {
+                    $student->parent->notify(
+                        new GradesPostedNotification($student, $class, $request->assessment_type, $score, $maxScore, $percentage)
+                    );
+                }
             }
         }
-        
+
         return redirect()->route('teacher.grades.view', $classId)
             ->with('success', 'Grades entered successfully for ' . $request->assessment_type);
     }
@@ -131,6 +156,53 @@ class GradeController extends Controller
         
         return redirect()->route('teacher.grades.view', $classId)
             ->with('success', 'Grades updated successfully for ' . $assessmentType);
+    }
+
+    // Export grades for a class as CSV
+    public function exportCsv($classId): StreamedResponse
+    {
+        $teacher = auth()->user();
+        $class = SchoolClass::with(['grade', 'stream', 'subject'])
+            ->where('teacher_id', $teacher->id)
+            ->findOrFail($classId);
+
+        $grades = StudentGrade::where('class_id', $classId)
+            ->with('student')
+            ->orderBy('assessment_date')
+            ->get();
+
+        $filename = 'grades-' . strtolower(str_replace(' ', '-', $class->subject->name))
+            . '-' . $class->grade->name . $class->stream->name . '.csv';
+
+        $response = new StreamedResponse(function () use ($grades, $class) {
+            $handle = fopen('php://output', 'w');
+
+            fputcsv($handle, [
+                'Class', $class->grade->name . ' ' . $class->stream->name . ' — ' . $class->subject->name
+            ]);
+            fputcsv($handle, []);
+            fputcsv($handle, ['Student Name', 'Admission No.', 'Assessment', 'Date', 'Score', 'Max Score', 'Percentage', 'Remarks']);
+
+            foreach ($grades as $grade) {
+                fputcsv($handle, [
+                    $grade->student->name,
+                    $grade->student->admission_number ?? '',
+                    $grade->assessment_type,
+                    $grade->assessment_date->format('Y-m-d'),
+                    $grade->score,
+                    $grade->max_score,
+                    $grade->percentage . '%',
+                    $grade->remarks ?? '',
+                ]);
+            }
+
+            fclose($handle);
+        });
+
+        $response->headers->set('Content-Type', 'text/csv');
+        $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
+
+        return $response;
     }
 
     // Delete an entire assessment

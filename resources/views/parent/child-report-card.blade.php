@@ -15,12 +15,24 @@
 <body class="bg-gray-100">
 
     <!-- Controls -->
-    <div class="no-print fixed top-4 right-4 flex gap-3">
-        <a href="{{ route('parent.dashboard') }}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded shadow-lg">
+    <div class="no-print fixed top-4 right-4 flex gap-3 items-center">
+        <a href="{{ route('parent.dashboard') }}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded shadow-lg text-sm">
             ← Back
         </a>
+        <form method="GET" class="flex items-center gap-2 bg-white shadow rounded px-3 py-2">
+            <label class="text-sm text-gray-600 font-medium whitespace-nowrap">Term:</label>
+            <select name="term_id" onchange="this.form.submit()"
+                class="text-sm border-gray-300 rounded focus:border-blue-500">
+                <option value="">All Terms</option>
+                @foreach($terms as $t)
+                    <option value="{{ $t->id }}" {{ $termId == $t->id ? 'selected' : '' }}>
+                        {{ $t->name }}{{ $t->is_active ? ' (Active)' : '' }}
+                    </option>
+                @endforeach
+            </select>
+        </form>
         <button onclick="window.print()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded shadow-lg">
-            Print Report Card
+            Print
         </button>
     </div>
 
@@ -51,6 +63,21 @@
                             {{ $child->stream->grade->name }} {{ $child->stream->name }}
                         @else
                             Not Assigned
+                        @endif
+                    </p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Term</p>
+                    <p class="text-lg font-semibold">{{ $term?->name ?? 'All Terms' }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Class Position</p>
+                    <p class="text-lg font-semibold">
+                        @if($streamPosition !== null)
+                            {{ $streamPosition }}<sup>{{ match((int)$streamPosition % 10) { 1 => 'st', 2 => 'nd', 3 => 'rd', default => 'th' } }}</sup>
+                            out of {{ $streamSize }}
+                        @else
+                            N/A
                         @endif
                     </p>
                 </div>

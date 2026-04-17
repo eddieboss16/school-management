@@ -41,10 +41,18 @@
                                                 <span class="text-gray-400">Not assigned</span>
                                             @endif
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            <a href="{{ route('admin.reports.generate', $student->id) }}" 
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
+                                            <a href="{{ route('admin.reports.generate', $student->id) }}"
                                                class="text-indigo-600 hover:text-indigo-900" target="_blank">
-                                                View Report Card
+                                                View Report
+                                            </a>
+                                            <a href="{{ route('admin.reports.pdf', $student->id) }}"
+                                               class="text-green-600 hover:text-green-900">
+                                                PDF
+                                            </a>
+                                            <a href="{{ route('admin.reports.attendance.csv', $student->id) }}"
+                                               class="text-gray-600 hover:text-gray-900">
+                                                Attendance CSV
                                             </a>
                                         </td>
                                     </tr>

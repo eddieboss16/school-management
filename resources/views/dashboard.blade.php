@@ -60,6 +60,9 @@
                             <a href="{{ route('student.report') }}" class="text-indigo-600 hover:text-indigo-800 font-medium">
                                 View My Report Card →
                             </a>
+                            <a href="{{ route('student.fees') }}" class="text-red-600 hover:text-red-800 font-medium">
+                                My Fees →
+                            </a>
                         </div>
                     </div>
                 </div>

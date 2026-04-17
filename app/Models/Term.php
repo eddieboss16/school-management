@@ -32,6 +32,16 @@ class Term extends Model
         return $this->hasMany(Attendance::class);
     }
 
+    public function feeStructures()
+    {
+        return $this->hasMany(FeeStructure::class);
+    }
+
+    public function feePayments()
+    {
+        return $this->hasMany(FeePayment::class);
+    }
+
     public static function activeTerm()
     {
         return static::where('is_active', true)->first();

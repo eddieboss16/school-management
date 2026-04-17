@@ -15,14 +15,30 @@
 <body class="bg-gray-100">
     
     <!-- Controls -->
-    <div class="no-print fixed top-4 right-4 flex gap-3">
+    <div class="no-print fixed top-4 right-4 flex gap-3 items-center">
+        <!-- Term selector -->
+        <form method="GET" class="flex items-center gap-2 bg-white shadow rounded px-3 py-2">
+            <label class="text-sm text-gray-600 font-medium whitespace-nowrap">Term:</label>
+            <select name="term_id" onchange="this.form.submit()"
+                class="text-sm border-gray-300 rounded focus:border-blue-500">
+                <option value="">All Terms</option>
+                @foreach($terms as $t)
+                    <option value="{{ $t->id }}" {{ $termId == $t->id ? 'selected' : '' }}>
+                        {{ $t->name }}{{ $t->is_active ? ' (Active)' : '' }}
+                    </option>
+                @endforeach
+            </select>
+        </form>
+
         @auth
             @if(auth()->user()->usertype === 'admin')
-                <a href="{{ route('admin.reports.pdf', $student->id) }}" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-6 rounded shadow-lg">
+                <a href="{{ route('admin.reports.pdf', array_filter(['id' => $student->id, 'term_id' => $termId])) }}"
+                    class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-6 rounded shadow-lg">
                     Download PDF
                 </a>
             @elseif(auth()->user()->usertype === 'student')
-                <a href="{{ route('student.report.pdf') }}" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-6 rounded shadow-lg">
+                <a href="{{ route('student.report.pdf', array_filter(['term_id' => $termId])) }}"
+                    class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-6 rounded shadow-lg">
                     Download PDF
                 </a>
             @endif
@@ -59,6 +75,21 @@
                             {{ $student->stream->grade->name }} {{ $student->stream->name }}
                         @else
                             Not Assigned
+                        @endif
+                    </p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Term</p>
+                    <p class="text-lg font-semibold">{{ $term?->name ?? 'All Terms' }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Class Position</p>
+                    <p class="text-lg font-semibold">
+                        @if($streamPosition !== null)
+                            {{ $streamPosition }}<sup>{{ match((int)$streamPosition % 10) { 1 => 'st', 2 => 'nd', 3 => 'rd', default => 'th' } }}</sup>
+                            out of {{ $streamSize }}
+                        @else
+                            N/A
                         @endif
                     </p>
                 </div>

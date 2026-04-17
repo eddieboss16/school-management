@@ -8,9 +8,18 @@ use App\Models\User;
 use App\Models\Stream;
 use App\Models\Subject;
 use App\Models\SchoolClass;
+use App\Models\ActivityLog;
 
 class DashboardController extends Controller
 {
+    public function activityLog() {
+        $logs = ActivityLog::with('user')
+            ->orderBy('created_at', 'desc')
+            ->paginate(30);
+
+        return view('admin.activity-log', compact('logs'));
+    }
+
     public function index() {
         $totalStudents = User::where('usertype', 'student')->count();
         $totalTeachers = User::where('usertype', 'teacher')->count();

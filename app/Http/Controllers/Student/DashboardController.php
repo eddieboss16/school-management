@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Attendance;
 use App\Models\StudentGrade;
+use App\Models\FeeStructure;
+use App\Models\FeePayment;
+use App\Models\Term;
 
 class DashboardController extends Controller
 {
@@ -40,6 +43,26 @@ class DashboardController extends Controller
             ->paginate(20);
 
         return view('student.attendance', compact('student', 'attendanceRecords'));
+    }
+
+    public function fees(Request $request) {
+        $student = auth()->user();
+        $terms = Term::orderBy('start_date', 'desc')->get();
+        $activeTerm = Term::activeTerm();
+        $selectedTermId = $request->term_id ?? $activeTerm?->id;
+
+        $fees = $selectedTermId ? FeeStructure::forStudent($student, $selectedTermId) : collect();
+        $payments = FeePayment::where('student_id', $student->id)
+            ->when($selectedTermId, fn($q) => $q->where('term_id', $selectedTermId))
+            ->with('term')
+            ->orderBy('payment_date', 'desc')
+            ->get();
+
+        $expected = $fees->sum('amount');
+        $paid = $payments->sum('amount');
+        $balance = $expected - $paid;
+
+        return view('student.fees', compact('terms', 'selectedTermId', 'fees', 'payments', 'expected', 'paid', 'balance'));
     }
 
     public function grades() {

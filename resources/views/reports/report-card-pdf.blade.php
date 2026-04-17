@@ -84,8 +84,24 @@
                     </div>
                 </div>
                 <div class="info-cell" style="padding-top:10px;">
+                    <div class="info-label">Term</div>
+                    <div class="info-value">{{ isset($term) && $term ? $term->name : 'All Terms' }}</div>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-cell" style="padding-top:10px;">
+                    <div class="info-label">Class Position</div>
+                    <div class="info-value">
+                        @if(isset($streamPosition) && $streamPosition !== null)
+                            {{ $streamPosition }} / {{ $streamSize }}
+                        @else
+                            N/A
+                        @endif
+                    </div>
+                </div>
+                <div class="info-cell" style="padding-top:10px;">
                     <div class="info-label">Report Date</div>
-                    <div class="info-value">{{ now()->format('d M Y') }}</div>
+                    <div class="info-value">{{ now()->format('M d, Y') }}</div>
                 </div>
             </div>
         </div>

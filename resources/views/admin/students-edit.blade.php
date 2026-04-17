@@ -64,6 +64,32 @@
                             @enderror
                         </div>
 
+                        <!-- Parent Link -->
+                        <div class="mb-4">
+                            <label for="parent_id" class="block text-sm font-medium text-gray-700">
+                                Linked Parent
+                                <span class="text-gray-400 font-normal">(optional)</span>
+                            </label>
+                            <select name="parent_id" id="parent_id"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="">— No Parent Linked —</option>
+                                @foreach($parents as $parent)
+                                    <option value="{{ $parent->id }}"
+                                        {{ old('parent_id', $student->parent_id) == $parent->id ? 'selected' : '' }}>
+                                        {{ $parent->name }} ({{ $parent->email }})
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('parent_id')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                            @if($student->parent)
+                                <p class="mt-1 text-xs text-gray-500">
+                                    Currently linked to: <strong>{{ $student->parent->name }}</strong>
+                                </p>
+                            @endif
+                        </div>
+
                         <!-- Password (optional) -->
                         <div class="mb-4">
                             <label for="password" class="block text-sm font-medium text-gray-700">New Password (leave blank to keep current)</label>

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rules;
 use App\Models\User;
 use App\Models\Stream;
+use App\Models\ActivityLog;
 
 class StudentController extends Controller
 {
@@ -62,7 +63,7 @@ class StudentController extends Controller
             $admissionNumber = "STD{$year}" . str_pad($newNumber, 3, '0', STR_PAD_LEFT);
         }
 
-        User::create([
+        $student = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'usertype' =>'student',
@@ -72,19 +73,22 @@ class StudentController extends Controller
             'email_verified_at' => now(),
         ]);
 
+        ActivityLog::record('created', 'Student', $student->id, "Created student: {$student->name} ({$admissionNumber})");
+
         return redirect()->route('admin.students')->with('success', 'Student created successfully.');
     }
 
     public function edit($id) {
         $student = User::findOrFail($id);
 
-        // Security check - make sure it's actually a student
         if ($student->usertype !== 'student') {
             return redirect()->route('admin.students')->with('error', 'Invalid student ID');
         }
-        $streams = Stream::with('grade')->orderBy('grade_id')->get();
 
-        return view('admin.students-edit', compact('student', 'streams'));
+        $streams = Stream::with('grade')->orderBy('grade_id')->get();
+        $parents = User::where('usertype', 'parent')->orderBy('name')->get();
+
+        return view('admin.students-edit', compact('student', 'streams', 'parents'));
     }
 
     public function update(Request $request, $id) {
@@ -96,11 +100,12 @@ class StudentController extends Controller
         }
 
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $id],
-            'stream_id' => ['nullable', 'exists:streams,id'],
+            'name'             => ['required', 'string', 'max:255'],
+            'email'            => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $id],
+            'stream_id'        => ['nullable', 'exists:streams,id'],
             'admission_number' => ['nullable', 'string', 'max:50', 'unique:users,admission_number,' . $id],
-            'password' => [
+            'parent_id'        => ['nullable', 'exists:users,id'],
+            'password'         => [
                 'nullable',
                 'confirmed',
                 Rules\Password::min(8)
@@ -111,19 +116,29 @@ class StudentController extends Controller
             ],
         ]);
 
-        $student->name = $request->name;
-        $student->email = $request->email;
-        $student->stream_id = $request->stream_id;
-        $student->admission_number = $request->admission_number;
+        // Ensure the linked parent is actually a parent account
+        if ($request->filled('parent_id')) {
+            $parentUser = User::find($request->parent_id);
+            if (!$parentUser || $parentUser->usertype !== 'parent') {
+                return back()->withErrors(['parent_id' => 'Invalid parent selected.'])->withInput();
+            }
+        }
 
-        // Only update password if provided
+        $student->name             = $request->name;
+        $student->email            = $request->email;
+        $student->stream_id        = $request->stream_id;
+        $student->admission_number = $request->admission_number;
+        $student->parent_id        = $request->parent_id ?: null;
+
         if ($request->filled('password')) {
             $student->password = bcrypt($request->password);
         }
 
         $student->save();
 
-        return redirect()->route('admin.students')->with('success', 'student updated successfully!');
+        ActivityLog::record('updated', 'Student', $student->id, "Updated student: {$student->name}");
+
+        return redirect()->route('admin.students')->with('success', 'Student updated successfully!');
     }
 
     public function destroy($id) {
@@ -133,6 +148,8 @@ class StudentController extends Controller
         if ($student->usertype !== 'student') {
             return redirect()->route('admin.students')->with('error', 'Invalid student ID');
         }
+
+        ActivityLog::record('deleted', 'Student', $student->id, "Deleted student: {$student->name} ({$student->admission_number})");
 
         $student->delete();
 

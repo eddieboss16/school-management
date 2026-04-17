@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules;
 use App\Models\User;
+use App\Models\ActivityLog;
 
 class TeacherController extends Controller
 {
@@ -38,13 +39,15 @@ class TeacherController extends Controller
             ],
         ]);
 
-        User::create([
+        $teacher = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'usertype' => 'teacher',
             'password' => bcrypt($request->password),
             'email_verified_at' => now(),
         ]);
+
+        ActivityLog::record('created', 'Teacher', $teacher->id, "Created teacher: {$teacher->name}");
 
         return redirect()->route('admin.teachers')->with('success', 'Teacher created successfully.');
     }
@@ -92,7 +95,9 @@ class TeacherController extends Controller
 
         $teacher->save();
 
-        return redirect()->route('admin.teachers')->with('success', 'teacher updated successfully!');
+        ActivityLog::record('updated', 'Teacher', $teacher->id, "Updated teacher: {$teacher->name}");
+
+        return redirect()->route('admin.teachers')->with('success', 'Teacher updated successfully!');
     }
 
     public function destroy($id) {
@@ -102,6 +107,8 @@ class TeacherController extends Controller
         if ($teacher->usertype !== 'teacher') {
             return redirect()->route('admin.teachers')->with('error', 'Invalid teacher ID');
         }
+
+        ActivityLog::record('deleted', 'Teacher', $teacher->id, "Deleted teacher: {$teacher->name}");
 
         $teacher->delete();
 

@@ -63,7 +63,7 @@
             <!-- Welcome Message -->
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
-                    <h3 class="text-xl font-semibold">Welcome, Admin Eddie.</h3>
+                    <h3 class="text-xl font-semibold">Welcome, {{ auth()->user()->name }}.</h3>
                     <p class="mt-2 text-gray-600">Manage your school from this dashboard.</p>
                 </div>
             </div>
@@ -129,6 +129,33 @@
             <h3 class="text-lg font-semibold text-gray-900 mb-2">Manage Terms</h3>
             <p class="text-gray-600 text-sm">Create and manage school terms/semesters</p>
             <p class="text-teal-600 mt-4 font-medium">View Terms →</p>
+        </div>
+    </a>
+
+    <!-- Fee Structures Card -->
+    <a href="{{ route('admin.fees.structures') }}" class="block bg-white overflow-hidden shadow-sm sm:rounded-lg hover:shadow-lg transition">
+        <div class="p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Fee Structures</h3>
+            <p class="text-gray-600 text-sm">Define fees per term and grade</p>
+            <p class="text-emerald-600 mt-4 font-medium">Manage Fees →</p>
+        </div>
+    </a>
+
+    <!-- Fee Balances Card -->
+    <a href="{{ route('admin.fees.balances') }}" class="block bg-white overflow-hidden shadow-sm sm:rounded-lg hover:shadow-lg transition">
+        <div class="p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Fee Balances</h3>
+            <p class="text-gray-600 text-sm">View outstanding balances and record payments</p>
+            <p class="text-rose-600 mt-4 font-medium">View Balances →</p>
+        </div>
+    </a>
+
+    <!-- Activity Log Card -->
+    <a href="{{ route('admin.activity-log') }}" class="block bg-white overflow-hidden shadow-sm sm:rounded-lg hover:shadow-lg transition">
+        <div class="p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Activity Log</h3>
+            <p class="text-gray-600 text-sm">Track all admin actions on the system</p>
+            <p class="text-slate-600 mt-4 font-medium">View Log →</p>
         </div>
     </a>
 </div>

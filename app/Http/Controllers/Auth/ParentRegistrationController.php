@@ -20,13 +20,22 @@ class ParentRegistrationController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'name'             => ['required', 'string', 'max:255'],
+            'email'            => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'admission_number' => ['required', 'string', 'exists:users,admission_number'],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'password'         => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        $student = User::where('admission_number', $request->admission_number)->first();
+        $student = User::where('admission_number', $request->admission_number)
+            ->where('usertype', 'student')
+            ->first();
+
+        // Block registration if this student already has a parent account linked
+        if ($student && $student->parent_id) {
+            return back()->withErrors([
+                'admission_number' => 'This student already has a parent account linked. Please contact the school administrator.',
+            ])->withInput();
+        }
 
         $parent = User::create([
             'name' => $request->name,

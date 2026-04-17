@@ -19,6 +19,7 @@
                                     <a href="{{ route('parent.child.grades', $child->id) }}" class="text-blue-500 hover:underline">View Grades</a>
                                     <a href="{{ route('parent.child.attendance', $child->id) }}" class="ml-4 text-blue-500 hover:underline">View Attendance</a>
                                     <a href="{{ route('parent.child.report_card', $child->id) }}" class="ml-4 text-blue-500 hover:underline">View Report Card</a>
+                                    <a href="{{ route('parent.child.fees', $child->id) }}" class="ml-4 text-red-500 hover:underline">View Fees</a>
                                 </div>
                             </li>
                         @endforeach

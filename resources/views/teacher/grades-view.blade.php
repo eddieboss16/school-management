@@ -21,10 +21,16 @@
                             <h3 class="text-lg font-semibold">{{ $class->subject->name }}</h3>
                             <p class="text-gray-600">{{ $class->grade->name }} {{ $class->stream->name }}</p>
                         </div>
-                        <a href="{{ route('teacher.grades.enter', $class->id) }}" 
-                           class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-                            Enter New Grades
-                        </a>
+                        <div class="flex gap-2">
+                            <a href="{{ route('teacher.grades.export', $class->id) }}"
+                               class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-sm">
+                                Export CSV
+                            </a>
+                            <a href="{{ route('teacher.grades.enter', $class->id) }}"
+                               class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                                Enter New Grades
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
