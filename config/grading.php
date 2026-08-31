@@ -41,19 +41,31 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Colour bands
+    | Tier colours
     |--------------------------------------------------------------------------
     |
-    | Purely presentational tinting of percentages, deliberately kept
-    | independent of the letter bands: green from 70 (B+), amber from 50 (C),
-    | red below. These are the thresholds the grade views have always used and
-    | are unrelated to KCSE grading itself.
+    | Colour is keyed to the base letter, so a percentage is tinted by the
+    | grade it earns rather than by a separate percentage threshold. A- is
+    | green because it is an A-tier grade, not because it clears 80.
+    |
+    |   A  green   (A, A-)      75-100
+    |   B  blue    (B+, B, B-)  60-74
+    |   C  yellow  (C+, C, C-)  45-59
+    |   D  orange  (D+, D, D-)  30-44
+    |   E  red     (E)           0-29
+    |
+    | These mirror the .grade-a … .grade-e rules in the report card PDF
+    | stylesheet, so an on-screen badge and its printed counterpart always
+    | carry the same colour.
     |
     */
 
-    'bands' => [
-        'good' => 70,
-        'fair' => 50,
+    'tier_colours' => [
+        'A' => ['badge' => 'bg-green-100 text-green-800',   'text' => 'text-green-600'],
+        'B' => ['badge' => 'bg-blue-100 text-blue-800',     'text' => 'text-blue-600'],
+        'C' => ['badge' => 'bg-yellow-100 text-yellow-800', 'text' => 'text-yellow-600'],
+        'D' => ['badge' => 'bg-orange-100 text-orange-800', 'text' => 'text-orange-600'],
+        'E' => ['badge' => 'bg-red-100 text-red-800',       'text' => 'text-red-600'],
     ],
 
 ];

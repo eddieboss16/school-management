@@ -68,8 +68,16 @@ Tests run on in-memory SQLite (forced in `phpunit.xml`) regardless of the `.env`
 
 `resources/views/{admin,teacher,student,parent,reports,auth}/` mirrors the controller namespaces; flat files named `students-create.blade.php` style rather than nested resource folders. Layouts come from Breeze (`layouts/app`, `layouts/guest`, `x-` components in `views/components/`).
 
+## Grading scale
+
+KCSE 12-point (`A` 80+, `A-` 75, `B+` 70, `B` 65, `B-` 60, `C+` 55, `C` 50, `C-` 45, `D+` 40, `D` 35, `D-` 30, `E` below). **There is no `F`** — `E` is the fail grade. Boundaries and points live in [config/grading.php](config/grading.php); nothing should compare a percentage against a literal threshold.
+
+- Everything goes through [App\Support\Grading](app/Support/Grading.php): `letter()`, `points()`, `badgeClass()`, `textClass()`, `pdfBadgeClass()`. `GradesPostedNotification` uses it too — the emailed letter must equal the report-card letter, and a test asserts that at every boundary.
+- **Colour is keyed to the base letter**, not to a separate percentage cutoff: A green, B blue, C yellow, D orange, E red. The same tiers exist as `.grade-a`…`.grade-e` in the PDF stylesheet, so a badge prints the colour it displays. `A-` is green because it is A-tier, not because it clears 80.
+- Those Tailwind classes are returned from PHP at runtime, so `./app/**/*.php` is in `tailwind.config.js` `content`. Drop it and the utilities get purged from a production build while still looking fine in dev.
+- The grade-entry form colours scores client-side from `Grading::scaleForJs()`, so the JS cannot drift from the server.
+
 ## Known rough edges
 
-- Letter-grade thresholds (A ≥70, B ≥60, C ≥50, D ≥40) are hardcoded inline in several Blade templates rather than a shared helper — changing the scale means editing each report view.
 - `computeStreamRank()` is duplicated in `ReportCardController` and `Parent\DashboardController`; keep them in sync.
 - Admission-number generation (`Admin/StudentController::store`) parses the last 3 digits of the previous `STD{year}###`, so it breaks at 1000 students in one year.

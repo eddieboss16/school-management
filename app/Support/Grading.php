@@ -36,24 +36,33 @@ class Grading
         return config('grading.fallback');
     }
 
+    /**
+     * The colour tier a percentage falls into: the base letter of its grade,
+     * so A- sits in the A tier and B+ in the B tier.
+     */
+    public static function tier(float|int|null $percentage): string
+    {
+        return strtoupper(substr(self::letter($percentage), 0, 1));
+    }
+
     /** Tailwind pill classes — background + text, used in table badges. */
     public static function badgeClass(float|int|null $percentage): string
     {
-        return match (self::band($percentage)) {
-            'good' => 'bg-green-100 text-green-800',
-            'fair' => 'bg-yellow-100 text-yellow-800',
-            default => 'bg-red-100 text-red-800',
-        };
+        return self::colours($percentage)['badge'];
     }
 
     /** Tailwind text colour, used on large standalone percentages. */
     public static function textClass(float|int|null $percentage): string
     {
-        return match (self::band($percentage)) {
-            'good' => 'text-green-600',
-            'fair' => 'text-yellow-600',
-            default => 'text-red-600',
-        };
+        return self::colours($percentage)['text'];
+    }
+
+    /** @return array{badge: string, text: string} */
+    private static function colours(float|int|null $percentage): array
+    {
+        $tiers = config('grading.tier_colours');
+
+        return $tiers[self::tier($percentage)] ?? end($tiers);
     }
 
     /**
@@ -68,22 +77,26 @@ class Grading
         return 'grade-badge grade-' . $base;
     }
 
-    /** Which colour band a percentage falls into. */
-    public static function band(float|int|null $percentage): string
+    /**
+     * The scale flattened for the grade-entry form's client-side colouring:
+     * descending lower bounds, each with the text colour of its tier, ending
+     * with a 0 entry so any percentage matches.
+     *
+     * @return list<array{min: int, text: string}>
+     */
+    public static function scaleForJs(): array
     {
-        $percentage = (float) $percentage;
-        $bands      = config('grading.bands');
+        $tiers = config('grading.tier_colours');
+        $out   = [];
 
-        return match (true) {
-            $percentage >= $bands['good'] => 'good',
-            $percentage >= $bands['fair'] => 'fair',
-            default => 'poor',
-        };
-    }
+        foreach (config('grading.letters') as $minimum => $band) {
+            $tier  = strtoupper(substr($band['letter'], 0, 1));
+            $out[] = ['min' => (int) $minimum, 'text' => ($tiers[$tier] ?? end($tiers))['text']];
+        }
 
-    /** Boundaries for the client-side colouring in the grade entry form. */
-    public static function bands(): array
-    {
-        return config('grading.bands');
+        $fallbackTier = strtoupper(substr(config('grading.fallback.letter'), 0, 1));
+        $out[] = ['min' => 0, 'text' => ($tiers[$fallbackTier] ?? end($tiers))['text']];
+
+        return $out;
     }
 }

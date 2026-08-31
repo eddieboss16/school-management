@@ -69,28 +69,70 @@ test('letter grade accepts int and null', function () {
         ->and(Grading::points(null))->toBe(1);
 });
 
-// ── Colour bands are presentational and independent of the letter bands ─────
+// ── Colour is keyed to the letter tier, not a separate percentage cutoff ────
 
-dataset('colour boundaries', [
-    'top'          => [100.0, 'good'],
-    'exactly good' => [70.0, 'good'],
-    'below good'   => [69.99, 'fair'],
-    'exactly fair' => [50.0, 'fair'],
-    'below fair'   => [49.99, 'poor'],
-    'zero'         => [0.0, 'poor'],
+dataset('tier boundaries', [
+    'A  top'    => [100.0, 'A'],
+    'A  exact'  => [80.0, 'A'],
+    'A- still A'=> [75.0, 'A'],
+    'B+ starts' => [74.99, 'B'],
+    'B- exact'  => [60.0, 'B'],
+    'C+ starts' => [59.99, 'C'],
+    'C- exact'  => [45.0, 'C'],
+    'D+ starts' => [44.99, 'D'],
+    'D- exact'  => [30.0, 'D'],
+    'E  starts' => [29.99, 'E'],
+    'zero'      => [0.0, 'E'],
 ]);
 
-test('colour band at each boundary', function (float $percentage, string $expected) {
-    expect(Grading::band($percentage))->toBe($expected);
-})->with('colour boundaries');
+test('colour tier is the base letter at each boundary', function (float $percentage, string $expected) {
+    expect(Grading::tier($percentage))->toBe($expected);
+})->with('tier boundaries');
 
-test('badge and text classes follow the colour band', function () {
-    expect(Grading::badgeClass(70))->toBe('bg-green-100 text-green-800')
-        ->and(Grading::badgeClass(50))->toBe('bg-yellow-100 text-yellow-800')
-        ->and(Grading::badgeClass(49))->toBe('bg-red-100 text-red-800')
-        ->and(Grading::textClass(70))->toBe('text-green-600')
-        ->and(Grading::textClass(50))->toBe('text-yellow-600')
-        ->and(Grading::textClass(49))->toBe('text-red-600');
+test('badge and text classes follow the letter tier', function () {
+    // A- is green because it is an A-tier grade, not because it clears 80.
+    expect(Grading::badgeClass(80))->toBe('bg-green-100 text-green-800')
+        ->and(Grading::badgeClass(75))->toBe('bg-green-100 text-green-800')
+        ->and(Grading::badgeClass(74))->toBe('bg-blue-100 text-blue-800')
+        ->and(Grading::badgeClass(60))->toBe('bg-blue-100 text-blue-800')
+        ->and(Grading::badgeClass(59))->toBe('bg-yellow-100 text-yellow-800')
+        ->and(Grading::badgeClass(45))->toBe('bg-yellow-100 text-yellow-800')
+        ->and(Grading::badgeClass(44))->toBe('bg-orange-100 text-orange-800')
+        ->and(Grading::badgeClass(30))->toBe('bg-orange-100 text-orange-800')
+        ->and(Grading::badgeClass(29))->toBe('bg-red-100 text-red-800');
+
+    expect(Grading::textClass(75))->toBe('text-green-600')
+        ->and(Grading::textClass(60))->toBe('text-blue-600')
+        ->and(Grading::textClass(45))->toBe('text-yellow-600')
+        ->and(Grading::textClass(30))->toBe('text-orange-600')
+        ->and(Grading::textClass(0))->toBe('text-red-600');
+});
+
+test('screen colours agree with the PDF stylesheet tier for tier', function () {
+    // pdfBadgeClass picks .grade-a … .grade-e; the screen tier must be the
+    // same letter, or a badge would print a different colour than it displays.
+    foreach ([100, 80, 75, 74, 60, 59, 45, 44, 30, 29, 0] as $score) {
+        $tier = Grading::tier($score);
+
+        expect(Grading::pdfBadgeClass($score))
+            ->toBe('grade-badge grade-' . strtolower($tier), "tier mismatch at {$score}%");
+    }
+});
+
+test('the js scale exposes every tier in descending order', function () {
+    $scale = Grading::scaleForJs();
+
+    expect($scale)->toHaveCount(12)
+        ->and($scale[0]['min'])->toBe(80)
+        ->and($scale[0]['text'])->toBe('text-green-600')
+        ->and(end($scale)['min'])->toBe(0)
+        ->and(end($scale)['text'])->toBe('text-red-600');
+
+    $mins   = array_column($scale, 'min');
+    $sorted = $mins;
+    rsort($sorted);
+
+    expect($mins)->toBe($sorted, 'js scale must be descending so find() picks the highest match');
 });
 
 test('pdf badge class collapses to the base letter the stylesheet defines', function () {
