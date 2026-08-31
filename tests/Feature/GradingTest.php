@@ -9,6 +9,12 @@
  * inline chains had, and it is what these assertions lock in.
  */
 
+use App\Models\Grade;
+use App\Models\SchoolClass;
+use App\Models\Stream;
+use App\Models\Subject;
+use App\Models\User;
+use App\Notifications\GradesPostedNotification;
 use App\Support\Grading;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -75,18 +81,50 @@ test('the scale is driven by config, not hardcoded in the helper', function () {
         ->and(Grading::letter(60))->toBe('U');
 });
 
-// ── The notification keeps its own, different scale ─────────────────────────
+// ── The email and the report card must agree ────────────────────────────────
+//
+// GradesPostedNotification used to carry its own 11-band scale, so at 70% the
+// email said B+ while the report card said A. It now reads the same config,
+// and this asserts they cannot drift apart again.
 
-test('DOCUMENTED DIVERGENCE: the email letter differs from the report card letter', function () {
-    // GradesPostedNotification uses an 11-band scale with different cut-offs.
-    // At 70% a report card says A while the email says B+. This test exists so
-    // the divergence is visible and deliberate rather than an unnoticed bug.
-    $notification = new ReflectionClass(\App\Notifications\GradesPostedNotification::class);
-    $method       = $notification->getMethod('getLetterGrade');
-    $method->setAccessible(true);
+test('the emailed letter matches the report card letter at every boundary', function () {
+    $grade   = Grade::factory()->create();
+    $stream  = Stream::factory()->create(['grade_id' => $grade->id]);
+    $teacher = User::factory()->create(['usertype' => 'teacher']);
+    $parent  = User::factory()->create(['usertype' => 'parent']);
+    $student = User::factory()->create([
+        'usertype' => 'student', 'stream_id' => $stream->id, 'parent_id' => $parent->id,
+    ]);
 
-    $instance = $notification->newInstanceWithoutConstructor();
+    $subject = new Subject();
+    $subject->name = 'Mathematics';
+    $subject->code = 'MTH-GRD';
+    $subject->save();
 
-    expect($method->invoke($instance, 70.0))->toBe('B+')
-        ->and(Grading::letter(70.0))->toBe('A');
+    $class = SchoolClass::factory()->create([
+        'teacher_id' => $teacher->id, 'grade_id' => $grade->id,
+        'stream_id'  => $stream->id, 'subject_id' => $subject->id,
+    ]);
+
+    // Boundaries of the current scale plus those of the retired 11-band one,
+    // so a partial revert would be caught too.
+    foreach ([100, 80, 79, 75, 74, 70, 69, 65, 64, 60, 59, 55, 54, 50, 49, 45, 44, 40, 39, 35, 30, 29, 0] as $score) {
+        $percentage = (float) $score;
+
+        $mail = (new GradesPostedNotification(
+            $student, $class, 'Boundary Exam', $percentage, 100.0, $percentage
+        ))->toMail($parent);
+
+        $rendered = implode("\n", $mail->introLines);
+        preg_match('/Grade:\s*(\S+)/', $rendered, $matches);
+
+        expect($matches[1] ?? null)->toBe(
+            Grading::letter($percentage),
+            "email letter disagreed with the report card at {$score}%"
+        );
+    }
+});
+
+test('the notification no longer carries its own grading scale', function () {
+    expect(method_exists(GradesPostedNotification::class, 'getLetterGrade'))->toBeFalse();
 });

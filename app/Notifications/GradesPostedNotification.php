@@ -8,6 +8,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use App\Models\User;
 use App\Models\SchoolClass;
+use App\Support\Grading;
 
 class GradesPostedNotification extends Notification implements ShouldQueue
 {
@@ -33,7 +34,7 @@ class GradesPostedNotification extends Notification implements ShouldQueue
 
         $subject    = $this->class->subject->name;
         $className  = $this->class->grade->name . ' ' . $this->class->stream->name;
-        $grade      = $this->getLetterGrade($this->percentage);
+        $grade      = Grading::letter($this->percentage);
 
         return (new MailMessage)
             ->subject("Grades posted for {$this->student->name} – {$subject}")
@@ -45,23 +46,5 @@ class GradesPostedNotification extends Notification implements ShouldQueue
             ->line("**Score:** {$this->score} / {$this->maxScore} ({$this->percentage}%) — Grade: {$grade}")
             ->line("Log in to the parent portal to view the full report card.")
             ->salutation('Regards, School Administration');
-    }
-
-    private function getLetterGrade(float $percentage): string
-    {
-        return match (true) {
-            $percentage >= 80 => 'A',
-            $percentage >= 75 => 'A-',
-            $percentage >= 70 => 'B+',
-            $percentage >= 65 => 'B',
-            $percentage >= 60 => 'B-',
-            $percentage >= 55 => 'C+',
-            $percentage >= 50 => 'C',
-            $percentage >= 45 => 'C-',
-            $percentage >= 40 => 'D+',
-            $percentage >= 35 => 'D',
-            $percentage >= 30 => 'D-',
-            default           => 'E',
-        };
     }
 }
