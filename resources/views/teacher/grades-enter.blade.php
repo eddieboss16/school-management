@@ -151,9 +151,13 @@
             return Math.round((score / max) * 100 * 100) / 100;
         }
 
+        // Boundaries come from config/grading.php so this stays in step with
+        // the server-side colouring in App\Support\Grading.
+        const gradeBands = @json(\App\Support\Grading::bands());
+
         function pctColor(p) {
-            if (p >= 70) return 'text-green-600';
-            if (p >= 50) return 'text-yellow-600';
+            if (p >= gradeBands.good) return 'text-green-600';
+            if (p >= gradeBands.fair) return 'text-yellow-600';
             return 'text-red-600';
         }
 

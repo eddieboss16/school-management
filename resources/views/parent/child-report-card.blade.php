@@ -110,15 +110,8 @@
                                 <td class="border border-gray-300 px-4 py-3 text-center font-semibold">{{ $data['average'] }}%</td>
                                 <td class="border border-gray-300 px-4 py-3 text-center">
                                     <span class="px-3 py-1 rounded-full text-sm font-semibold
-                                        {{ $data['average'] >= 70 ? 'bg-green-100 text-green-800' : '' }}
-                                        {{ $data['average'] >= 50 && $data['average'] < 70 ? 'bg-yellow-100 text-yellow-800' : '' }}
-                                        {{ $data['average'] < 50 ? 'bg-red-100 text-red-800' : '' }}">
-                                        @if($data['average'] >= 70) A
-                                        @elseif($data['average'] >= 60) B
-                                        @elseif($data['average'] >= 50) C
-                                        @elseif($data['average'] >= 40) D
-                                        @else F
-                                        @endif
+                                        {{ \App\Support\Grading::badgeClass($data['average']) }}">
+                                        {{ \App\Support\Grading::letter($data['average']) }}
                                     </span>
                                 </td>
                             </tr>
@@ -127,12 +120,7 @@
                             <td class="border border-gray-300 px-4 py-3" colspan="2">OVERALL AVERAGE</td>
                             <td class="border border-gray-300 px-4 py-3 text-center text-lg">{{ $overallAverage }}%</td>
                             <td class="border border-gray-300 px-4 py-3 text-center text-lg">
-                                @if($overallAverage >= 70) A
-                                @elseif($overallAverage >= 60) B
-                                @elseif($overallAverage >= 50) C
-                                @elseif($overallAverage >= 40) D
-                                @else F
-                                @endif
+                                {{ \App\Support\Grading::letter($overallAverage) }}
                             </td>
                         </tr>
                     </tbody>

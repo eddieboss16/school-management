@@ -126,17 +126,7 @@
                             <td style="text-align:center">{{ $data['assessments']->count() }}</td>
                             <td style="text-align:center; font-weight:600">{{ $data['average'] }}%</td>
                             <td style="text-align:center">
-                                @if($data['average'] >= 70)
-                                    <span class="grade-badge grade-a">A</span>
-                                @elseif($data['average'] >= 60)
-                                    <span class="grade-badge grade-b">B</span>
-                                @elseif($data['average'] >= 50)
-                                    <span class="grade-badge grade-c">C</span>
-                                @elseif($data['average'] >= 40)
-                                    <span class="grade-badge grade-d">D</span>
-                                @else
-                                    <span class="grade-badge grade-f">F</span>
-                                @endif
+                                <span class="{{ \App\Support\Grading::pdfBadgeClass($data['average']) }}">{{ \App\Support\Grading::letter($data['average']) }}</span>
                             </td>
                         </tr>
                     @endforeach
@@ -144,12 +134,7 @@
                         <td colspan="2"><strong>OVERALL AVERAGE</strong></td>
                         <td style="text-align:center; font-size:13px"><strong>{{ $overallAverage }}%</strong></td>
                         <td style="text-align:center; font-size:13px">
-                            @if($overallAverage >= 70) <span class="grade-badge grade-a">A</span>
-                            @elseif($overallAverage >= 60) <span class="grade-badge grade-b">B</span>
-                            @elseif($overallAverage >= 50) <span class="grade-badge grade-c">C</span>
-                            @elseif($overallAverage >= 40) <span class="grade-badge grade-d">D</span>
-                            @else <span class="grade-badge grade-f">F</span>
-                            @endif
+                            <span class="{{ \App\Support\Grading::pdfBadgeClass($overallAverage) }}">{{ \App\Support\Grading::letter($overallAverage) }}</span>
                         </td>
                     </tr>
                 </tbody>
