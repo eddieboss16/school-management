@@ -35,7 +35,7 @@
         .grade-b { background-color: #dbeafe; color: #1e40af; }
         .grade-c { background-color: #fef9c3; color: #713f12; }
         .grade-d { background-color: #ffedd5; color: #9a3412; }
-        .grade-f { background-color: #fee2e2; color: #991b1b; }
+        .grade-e { background-color: #fee2e2; color: #991b1b; }
 
         .attendance-grid { display: table; width: 100%; }
         .att-cell { display: table-cell; text-align: center; width: 25%; }
