@@ -15,11 +15,10 @@ class GradeController extends Controller
 {
     // Show grade entry form for specific class
     public function enter($classId) {
-        $teacher = auth()->user();
-
         $class = SchoolClass::with(['grade', 'stream', 'subject', 'students'])
-            ->where('teacher_id', $teacher->id)
             ->findOrFail($classId);
+
+        $this->authorize('view', $class);
 
         return view('teacher.grades-enter', compact('class'));
     }
@@ -29,7 +28,9 @@ class GradeController extends Controller
     {
         $teacher = auth()->user();
         
-        $class = SchoolClass::where('teacher_id', $teacher->id)->findOrFail($classId);
+        $class = SchoolClass::findOrFail($classId);
+
+        $this->authorize('update', $class);
         
         // Owning the class is not enough — every submitted student must also be
         // enrolled in it, or a teacher can write grades onto another class's student.
@@ -101,11 +102,11 @@ class GradeController extends Controller
     // View all grades for a class
     public function view($classId)
     {
-        $teacher = auth()->user();
         
         $class = SchoolClass::with(['grade', 'stream', 'subject', 'students'])
-            ->where('teacher_id', $teacher->id)
             ->findOrFail($classId);
+
+        $this->authorize('view', $class);
         
         // Get all grades for this class grouped by assessment type
         $grades = StudentGrade::where('class_id', $classId)
@@ -119,11 +120,11 @@ class GradeController extends Controller
     // Edit a specific grade assessment
     public function edit($classId, $assessmentType)
     {
-        $teacher = auth()->user();
         
         $class = SchoolClass::with(['grade', 'stream', 'subject', 'students'])
-            ->where('teacher_id', $teacher->id)
             ->findOrFail($classId);
+
+        $this->authorize('view', $class);
         
         // Get all grades for this assessment
         $grades = StudentGrade::where('class_id', $classId)
@@ -145,9 +146,10 @@ class GradeController extends Controller
     // Update grades for an assessment
     public function update(Request $request, $classId, $assessmentType)
     {
-        $teacher = auth()->user();
         
-        $class = SchoolClass::where('teacher_id', $teacher->id)->findOrFail($classId);
+        $class = SchoolClass::findOrFail($classId);
+
+        $this->authorize('update', $class);
         
         $request->validate([
             'assessment_date' => ['required', 'date'],
@@ -175,10 +177,10 @@ class GradeController extends Controller
     // Export grades for a class as CSV
     public function exportCsv($classId): StreamedResponse
     {
-        $teacher = auth()->user();
         $class = SchoolClass::with(['grade', 'stream', 'subject'])
-            ->where('teacher_id', $teacher->id)
             ->findOrFail($classId);
+
+        $this->authorize('view', $class);
 
         $grades = StudentGrade::where('class_id', $classId)
             ->with('student')
@@ -222,9 +224,10 @@ class GradeController extends Controller
     // Delete an entire assessment
     public function destroy($classId, $assessmentType)
     {
-        $teacher = auth()->user();
         
-        $class = SchoolClass::where('teacher_id', $teacher->id)->findOrFail($classId);
+        $class = SchoolClass::findOrFail($classId);
+
+        $this->authorize('update', $class);
         
         // Delete all grades for this assessment
         StudentGrade::where('class_id', $classId)

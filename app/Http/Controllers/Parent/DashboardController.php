@@ -117,12 +117,16 @@ class DashboardController extends Controller
         ));
     }
 
+    /**
+     * The ownership rule now lives in StudentPolicy. This stays as the single
+     * lookup point for the four child pages; the policy denies as 404, so the
+     * response is unchanged from the scoped findOrFail() it replaces.
+     */
     private function authorizeChild($id)
     {
-        $parent = auth()->user();
-        $child = User::where('usertype', 'student')
-            ->where('parent_id', $parent->id)
-            ->findOrFail($id);
+        $child = User::findOrFail($id);
+
+        $this->authorize('view', $child);
 
         return $child;
     }

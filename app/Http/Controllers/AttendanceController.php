@@ -15,11 +15,10 @@ class AttendanceController extends Controller
 {
     // Schow attendance marking for specific class
     public function mark($classId) {
-        $teacher = auth()->user();
-
         $class = SchoolClass::with(['grade', 'stream', 'subject', 'students'])
-        ->where('teacher_id', $teacher->id)
         ->findOrFail($classId);
+
+        $this->authorize('view', $class);
         
         $today = Carbon::today();
 
@@ -36,7 +35,9 @@ class AttendanceController extends Controller
     public function store(Request $request, $classId) {
         $teacher = auth()->user();
 
-        $class = SchoolClass::where('teacher_id', $teacher->id)->findOrFail($classId);
+        $class = SchoolClass::findOrFail($classId);
+
+        $this->authorize('update', $class);
 
         // Owning the class is not enough — every submitted student must also be
         // enrolled in it, or a teacher can mark attendance for another class's student.
@@ -102,11 +103,10 @@ class AttendanceController extends Controller
 
     // View attendance history for a class
     public function history($classId) {
-        $teacher = auth()->user();
-
         $class = SchoolClass::with(['grade', 'stream', 'subject'])
-        ->where('teacher_id', $teacher->id)
         ->findOrFail($classId);
+
+        $this->authorize('view', $class);
 
         // Get all attendance grouped by date
         $attendanceRecords = Attendance::where('class_id', $classId)
