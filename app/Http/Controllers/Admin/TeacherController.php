@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Concerns\FindsUsersByType;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules;
 use App\Models\User;
@@ -10,6 +12,8 @@ use App\Models\ActivityLog;
 
 class TeacherController extends Controller
 {
+    use FindsUsersByType;
+
     public function index() {
         $teachers = User::where('usertype', 'teacher')
         ->orderBy('created_at', 'desc')
@@ -53,22 +57,20 @@ class TeacherController extends Controller
     }
 
     public function edit($id) {
-        $teacher = User::findOrFail($id);
+        $teacher = $this->findUserOfType($id, 'teacher');
 
-        // Security check - make sure it's actually a teacher
-        if ($teacher->usertype !== 'teacher') {
-            return redirect()->route('admin.teachers')->with('error', 'Invalid teacher ID');
+        if ($teacher instanceof RedirectResponse) {
+            return $teacher;
         }
 
         return view('admin.teachers-edit', compact('teacher'));
     }
 
     public function update(Request $request, $id) {
-        $teacher = User::findOrFail($id);
+        $teacher = $this->findUserOfType($id, 'teacher');
 
-        // Security check
-        if ($teacher->usertype !== 'teacher') {
-            return redirect()->route('admin.teachers')->with('error', 'Invalid teacher ID');
+        if ($teacher instanceof RedirectResponse) {
+            return $teacher;
         }
 
         $request->validate([
@@ -101,11 +103,10 @@ class TeacherController extends Controller
     }
 
     public function destroy($id) {
-        $teacher = User::findOrFail($id);
+        $teacher = $this->findUserOfType($id, 'teacher');
 
-        // Security check
-        if ($teacher->usertype !== 'teacher') {
-            return redirect()->route('admin.teachers')->with('error', 'Invalid teacher ID');
+        if ($teacher instanceof RedirectResponse) {
+            return $teacher;
         }
 
         ActivityLog::record('deleted', 'Teacher', $teacher->id, "Deleted teacher: {$teacher->name}");

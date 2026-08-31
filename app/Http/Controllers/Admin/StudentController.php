@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Concerns\FindsUsersByType;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules;
 use App\Models\User;
@@ -11,6 +13,8 @@ use App\Models\ActivityLog;
 
 class StudentController extends Controller
 {
+    use FindsUsersByType;
+
     public function index() {
         $students = User::where('usertype', 'student')
         ->with('stream.grade')
@@ -79,10 +83,10 @@ class StudentController extends Controller
     }
 
     public function edit($id) {
-        $student = User::findOrFail($id);
+        $student = $this->findUserOfType($id, 'student');
 
-        if ($student->usertype !== 'student') {
-            return redirect()->route('admin.students')->with('error', 'Invalid student ID');
+        if ($student instanceof RedirectResponse) {
+            return $student;
         }
 
         $streams = Stream::with('grade')->orderBy('grade_id')->get();
@@ -92,11 +96,10 @@ class StudentController extends Controller
     }
 
     public function update(Request $request, $id) {
-        $student = User::findOrFail($id);
+        $student = $this->findUserOfType($id, 'student');
 
-        // Security check
-        if ($student->usertype !== 'student') {
-            return redirect()->route('admin.students')->with('error', 'Invalid student ID');
+        if ($student instanceof RedirectResponse) {
+            return $student;
         }
 
         $request->validate([
@@ -142,11 +145,10 @@ class StudentController extends Controller
     }
 
     public function destroy($id) {
-        $student = User::findOrFail($id);
+        $student = $this->findUserOfType($id, 'student');
 
-        // Security check
-        if ($student->usertype !== 'student') {
-            return redirect()->route('admin.students')->with('error', 'Invalid student ID');
+        if ($student instanceof RedirectResponse) {
+            return $student;
         }
 
         ActivityLog::record('deleted', 'Student', $student->id, "Deleted student: {$student->name} ({$student->admission_number})");
