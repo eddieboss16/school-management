@@ -38,9 +38,23 @@ class AttendanceController extends Controller
 
         $class = SchoolClass::where('teacher_id', $teacher->id)->findOrFail($classId);
 
+        // Owning the class is not enough — every submitted student must also be
+        // enrolled in it, or a teacher can mark attendance for another class's student.
+        $enrolledIds = $class->students()->pluck('users.id')->all();
+
         $request->validate([
             'date' => ['required', 'date'],
-            'attendance' => ['required', 'array'],
+            'attendance' => ['required', 'array', function ($attribute, $value, $fail) use ($enrolledIds) {
+                if (! is_array($value)) {
+                    return;
+                }
+
+                $notEnrolled = array_diff(array_keys($value), $enrolledIds);
+
+                if (! empty($notEnrolled)) {
+                    $fail('These students are not enrolled in this class: ' . implode(', ', $notEnrolled) . '.');
+                }
+            }],
             'attendance.*' => ['in:present,absent,late,excused'],
         ]);
 

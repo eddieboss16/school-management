@@ -343,15 +343,14 @@ test('grade list of one class never contains records from another class', functi
     expect($classIds)->toBe([$classA->id]);
 });
 
-// ── Known gaps, characterized rather than fixed ─────────────────────────────
+// ── Writes are refused for students not enrolled in the class ───────────────
 //
-// Both tests below assert what the code does TODAY, not what it should do.
-// Neither controller verifies that the submitted student is enrolled in the
-// class, so a teacher can write rows for a student who belongs to someone
-// else's class. Reported as a finding for Step 2 — when the enrollment check
-// lands, these two tests are expected to fail and must be inverted.
+// Owning the class is not sufficient. These previously documented a gap: a
+// teacher could write rows for a student belonging to another class, and
+// ReportCardController::buildReportData selects on student_id alone, so the
+// row surfaced on the victim's report card. Both writes are now rejected.
 
-test('CHARACTERIZATION: grade entry does not verify the student is enrolled in the class', function () {
+test('grade entry rejects a student who is not enrolled in the class', function () {
     [$teacherA, $classA] = isolationTeacherWithClass();
     [, , $studentB] = isolationTeacherWithClass();
     Term::factory()->create(['is_active' => true]);
@@ -363,17 +362,16 @@ test('CHARACTERIZATION: grade entry does not verify the student is enrolled in t
             'max_score'       => 100,
             'grades'          => [$studentB->id => ['score' => 99]],
         ])
-        ->assertRedirect(route('teacher.grades.view', $classA->id));
+        ->assertStatus(302)
+        ->assertSessionHasErrors('grades');
 
-    // studentB is not enrolled in classA, yet the row is written.
-    $this->assertDatabaseHas('student_grades', [
+    $this->assertDatabaseMissing('student_grades', [
         'class_id'   => $classA->id,
         'student_id' => $studentB->id,
-        'score'      => 99,
     ]);
 });
 
-test('CHARACTERIZATION: attendance marking does not verify the student is enrolled in the class', function () {
+test('attendance marking rejects a student who is not enrolled in the class', function () {
     [$teacherA, $classA] = isolationTeacherWithClass();
     [, , $studentB] = isolationTeacherWithClass();
     Term::factory()->create(['is_active' => true]);
@@ -383,12 +381,64 @@ test('CHARACTERIZATION: attendance marking does not verify the student is enroll
             'date'       => now()->format('Y-m-d'),
             'attendance' => [$studentB->id => 'absent'],
         ])
-        ->assertRedirect(route('teacher.attendance.history', $classA->id));
+        ->assertStatus(302)
+        ->assertSessionHasErrors('attendance');
 
-    // studentB is not enrolled in classA, yet the row is written.
-    $this->assertDatabaseHas('attendances', [
+    $this->assertDatabaseMissing('attendances', [
         'class_id'   => $classA->id,
         'student_id' => $studentB->id,
-        'status'     => 'absent',
+    ]);
+});
+
+test('a mixed batch is rejected whole rather than silently dropping the outsider', function () {
+    [$teacherA, $classA, $studentA] = isolationTeacherWithClass();
+    [, , $studentB] = isolationTeacherWithClass();
+    Term::factory()->create(['is_active' => true]);
+
+    $this->actingAs($teacherA)
+        ->post(route('teacher.grades.store', $classA->id), [
+            'assessment_type' => 'Mixed Batch',
+            'assessment_date' => now()->format('Y-m-d'),
+            'max_score'       => 100,
+            'grades'          => [
+                $studentA->id => ['score' => 60],
+                $studentB->id => ['score' => 99],
+            ],
+        ])
+        ->assertStatus(302)
+        ->assertSessionHasErrors('grades');
+
+    // The enrolled student's row is rejected too — the batch is atomic.
+    $this->assertDatabaseMissing('student_grades', ['assessment_type' => 'Mixed Batch']);
+});
+
+test('attendance for an unenrolled student does not wipe existing records for that date', function () {
+    [$teacherA, $classA, $studentA] = isolationTeacherWithClass();
+    [, , $studentB] = isolationTeacherWithClass();
+    Term::factory()->create(['is_active' => true]);
+    $date = now()->format('Y-m-d');
+
+    $this->actingAs($teacherA)
+        ->post(route('teacher.attendance.store', $classA->id), [
+            'date'       => $date,
+            'attendance' => [$studentA->id => 'present'],
+        ])
+        ->assertRedirect(route('teacher.attendance.history', $classA->id));
+
+    // store() deletes the day's rows before re-inserting, so the enrollment
+    // check has to reject before that delete runs.
+    $this->actingAs($teacherA)
+        ->post(route('teacher.attendance.store', $classA->id), [
+            'date'       => $date,
+            'attendance' => [$studentB->id => 'absent'],
+        ])
+        ->assertStatus(302)
+        ->assertSessionHasErrors('attendance');
+
+    $this->assertDatabaseHas('attendances', [
+        'class_id'   => $classA->id,
+        'student_id' => $studentA->id,
+        'status'     => 'present',
+        'deleted_at' => null,
     ]);
 });

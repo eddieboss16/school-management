@@ -25,7 +25,9 @@ class StudentGradeFactory extends Factory
             'max_score'       => $maxScore,
             'assessment_date' => fake()->dateTimeBetween('-3 months', 'now'),
             'remarks'         => null,
-            'entered_by'      => null,
+            // student_grades.entered_by is NOT NULL. Left lazy so it is only
+            // resolved when the caller does not supply a teacher of their own.
+            'entered_by'      => User::factory()->state(['usertype' => 'teacher']),
         ];
     }
 }

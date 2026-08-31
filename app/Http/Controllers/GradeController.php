@@ -31,11 +31,25 @@ class GradeController extends Controller
         
         $class = SchoolClass::where('teacher_id', $teacher->id)->findOrFail($classId);
         
+        // Owning the class is not enough — every submitted student must also be
+        // enrolled in it, or a teacher can write grades onto another class's student.
+        $enrolledIds = $class->students()->pluck('users.id')->all();
+
         $request->validate([
             'assessment_type' => ['required', 'string', 'max:255'],
             'assessment_date' => ['required', 'date'],
             'max_score' => ['required', 'numeric', 'min:1'],
-            'grades' => ['required', 'array'],
+            'grades' => ['required', 'array', function ($attribute, $value, $fail) use ($enrolledIds) {
+                if (! is_array($value)) {
+                    return;
+                }
+
+                $notEnrolled = array_diff(array_keys($value), $enrolledIds);
+
+                if (! empty($notEnrolled)) {
+                    $fail('These students are not enrolled in this class: ' . implode(', ', $notEnrolled) . '.');
+                }
+            }],
             'grades.*.score' => ['required', 'numeric', 'min:0'],
         ]);
         
