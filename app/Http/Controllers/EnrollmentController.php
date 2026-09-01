@@ -12,7 +12,10 @@ class EnrollmentController extends Controller
     // Show enrollment page for a specific class
     public function show($classId)
     {
-        $class = SchoolClass::with(['grade', 'stream', 'subject', 'teacher', 'students'])
+        // students.stream.grade, not just students: the roster prints each
+        // student's grade and stream, so a bare `students` load fires a
+        // streams + grades lookup per enrolled student.
+        $class = SchoolClass::with(['grade', 'stream', 'subject', 'teacher', 'students.stream.grade'])
             ->findOrFail($classId);
         
         // Get available students (same stream, not already enrolled)

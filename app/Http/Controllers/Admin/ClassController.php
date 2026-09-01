@@ -13,7 +13,10 @@ use App\Models\User;
 class ClassController extends Controller
 {
     public function index() {
+        // withCount: the list only prints the enrolment total, so hydrating the
+        // full student models per row was pure waste.
         $classes = SchoolClass::with(['grade', 'stream', 'subject', 'teacher'])
+        ->withCount('students')
         ->orderBy('grade_id')
         ->paginate(15);
 
