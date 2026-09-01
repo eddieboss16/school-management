@@ -23,7 +23,12 @@ php artisan migrate && php artisan db:seed   # grades 1-9, streams A-C, subjects
 npm run build
 ```
 
-Tests run on in-memory SQLite (forced in `phpunit.xml`) regardless of the `.env` DB. Local `.env` points at MySQL `school_management`; `database/database.sqlite` also exists but is not what tests use. No CI is configured.
+Tests run on in-memory SQLite (forced in `phpunit.xml`) regardless of the `.env` DB. No CI is configured.
+
+Two traps around the dev database:
+
+- Local `.env` points at MySQL **`high_school_management`** — *not* `school_management`, which the repo name and this file previously implied. If `artisan migrate` reports "Nothing to migrate" against a database you can see is empty, you are looking at the wrong schema; `env('DB_DATABASE')` is the authority. (Laravel's dotenv is immutable, so a real OS env var of the same name silently wins over `.env` too.)
+- `database/database.sqlite` exists but is a **stale stub**: 3 of 21 migrations applied, no `enrollments`/`student_grades` tables, zero rows. It is neither what tests use nor a working dev database — do not point anything at it expecting it to work.
 
 ## Domain vocabulary (easy to get wrong)
 
