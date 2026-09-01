@@ -95,11 +95,8 @@
                                         <td class="px-4 py-3">{{ $payment->payment_date->format('M d, Y') }}</td>
                                         <td class="px-4 py-3 font-semibold text-green-700">KES {{ number_format($payment->amount, 2) }}</td>
                                         <td class="px-4 py-3">
-                                            <span class="px-2 py-1 text-xs rounded-full
-                                                {{ $payment->payment_method === 'cash' ? 'bg-gray-100 text-gray-700' : '' }}
-                                                {{ $payment->payment_method === 'mpesa' ? 'bg-green-100 text-green-700' : '' }}
-                                                {{ $payment->payment_method === 'bank' ? 'bg-blue-100 text-blue-700' : '' }}">
-                                                {{ ucfirst($payment->payment_method) }}
+                                            <span class="px-2 py-1 text-xs rounded-full {{ $payment->payment_method->badgeClass() }}">
+                                                {{ $payment->payment_method->label() }}
                                             </span>
                                         </td>
                                         <td class="px-4 py-3 text-gray-500">{{ $payment->reference_number ?? '—' }}</td>

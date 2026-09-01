@@ -13,7 +13,7 @@ composer dev            # server + queue:listen + pail logs + vite, all concurre
 php artisan serve       # server only
 npm run dev             # vite only
 
-php artisan test                                  # full suite (Pest); 162 tests currently pass
+php artisan test                                  # full suite (Pest); 251 tests currently pass
 php artisan test tests/Feature/FeeBalanceTest.php # single file
 php artisan test --filter="teacher can enter grades for their own class"
 composer test           # config:clear then artisan test
@@ -63,7 +63,7 @@ Two traps around the dev database:
 
 ## Fees model
 
-`FeeStructure` rows are per term; `grade_id = null` means it applies to every grade, otherwise grade-specific. A student owes `sum(global) + sum(their grade)` for the term, minus `FeePayment` totals. `payment_method` is a plain string (`cash|mpesa|bank`) constrained only by controller validation, intentionally not a DB enum.
+`FeeStructure` rows are per term; `grade_id = null` means it applies to every grade, otherwise grade-specific. A student owes `sum(global) + sum(their grade)` for the term, minus `FeePayment` totals. `payment_method` is `App\Enums\PaymentMethod` (`cash|mpesa|bank`), cast on the model and **enforced by the database**, not by controller validation — a seeder, command, or job that writes `FeePayment` directly gets a `QueryException`, not a silent bad row. On MySQL/MariaDB the column is an `ENUM` *and* carries an explicit `fee_payments_payment_method_check`: an ENUM alone only errors under a strict `sql_mode` (set from `config/database.php`, i.e. app config), and coerces to `''` without it. Adding a method means editing the enum *and* writing a migration. The enum also owns `label()` and `badgeClass()`, so the admin/student/parent fee tables cannot drift — `$payment->payment_method` is an enum instance, so it never compares equal to a string and `ucfirst()` on it is a `TypeError`.
 
 ## PDFs
 

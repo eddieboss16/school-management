@@ -474,7 +474,7 @@ One record per payment made.
 | `term_id` | FK → Term |
 | `amount` | Amount paid |
 | `payment_date` | Date of payment |
-| `payment_method` | enum: `cash`, `mpesa`, `bank` |
+| `payment_method` | `App\Enums\PaymentMethod` — `cash`, `mpesa`, `bank`; DB-enforced |
 | `reference_number` | Receipt or M-Pesa transaction code |
 | `notes` | Optional admin note |
 | `recorded_by` | FK → User (admin who recorded it, nullable) |
@@ -577,17 +577,22 @@ This enum drives:
 #### `fee_payments.payment_method`
 
 ```php
-$table->string('payment_method')->default('cash'); // cash, mpesa, bank
+$table->enum('payment_method', PaymentMethod::values())->default('cash');
 ```
 
-**Note:** This is stored as a string with three known values rather than a strict database enum. The reason is pragmatic — M-Pesa is the dominant payment method in Kenya and "bank" covers bank transfers. If the school adds a new method later (e.g., "cheque"), a string column can be updated without a migration that modifies an enum column on a large production table (which requires an ALTER TABLE in MySQL and can lock the table).
+This was originally a plain `string` enforced only by an `in:cash,mpesa,bank` rule in `Admin\FeesController`, on the argument that a string column is cheaper to extend than an enum. That argument only holds if the controller is the sole writer. It is not a guarantee the schema makes — a seeder, an artisan command, a queued job, or any future route writing `FeePayment` directly bypassed the rule entirely and could store any string at all.
 
-The three valid values are enforced at the **validation layer** in the controller:
-```php
-'payment_method' => ['required', 'in:cash,mpesa,bank'],
-```
+It is now constrained in three places, outermost first:
 
-This gives the same protection as a database enum for new inserts, with easier extensibility.
+1. **Validation** — `Rule::enum(PaymentMethod::class)` in `Admin\FeesController::recordPayment`, so a bad form post produces a 422 rather than a 500.
+2. **The model cast** — `'payment_method' => PaymentMethod::class`, so reads hydrate as `App\Enums\PaymentMethod` and an invalid assignment raises a `ValueError`.
+3. **The database** — the authority. `enum()` compiles to a native `ENUM` on MySQL/MariaDB and to `varchar check (payment_method in (...))` on SQLite, so the test suite enforces exactly what the dev database does.
+
+**Why MySQL gets a CHECK constraint as well as the ENUM:** a MySQL/MariaDB `ENUM` only *raises an error* on an unknown value under a strict `sql_mode`. Laravel sets that from `'strict' => true` in `config/database.php` — application configuration, which is the same class of guarantee the controller rule was. Under `sql_mode = ''` the server silently coerces the unknown value to `''` and the row lands. The migration therefore adds an explicit `fee_payments_payment_method_check`, which holds regardless of `sql_mode`. (MariaDB 10.2.1+ / MySQL 8.0.16+; older MySQL parses and ignores it, leaving the ENUM as the only guard — still no worse than the bare string.)
+
+Adding a method later now costs a migration. That is the intended trade: the column is small, and a payment ledger is the wrong place to accept a typo silently.
+
+`App\Enums\PaymentMethod` also owns the display text (`label()`) and the badge colours (`badgeClass()`), the same arrangement `App\Support\Grading` uses — so the admin, student, and parent fee tables cannot drift from one another. Because those Tailwind classes are returned from PHP at runtime, the `./app/**/*.php` glob must stay in `tailwind.config.js` `content`.
 
 ---
 

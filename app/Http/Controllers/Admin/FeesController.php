@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\PaymentMethod;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\FeePayment;
@@ -13,6 +14,7 @@ use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class FeesController extends Controller
@@ -206,7 +208,7 @@ class FeesController extends Controller
             'term_id' => ['required', 'exists:terms,id'],
             'amount' => ['required', 'numeric', 'min:1'],
             'payment_date' => ['required', 'date'],
-            'payment_method' => ['required', 'in:cash,mpesa,bank'],
+            'payment_method' => ['required', Rule::enum(PaymentMethod::class)],
             'reference_number' => ['nullable', 'string', 'max:100'],
             'notes' => ['nullable', 'string', 'max:500'],
         ]);

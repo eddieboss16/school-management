@@ -124,9 +124,9 @@
                             <div class="mb-3">
                                 <label class="block text-xs font-medium text-gray-700 mb-1">Payment Method *</label>
                                 <select name="payment_method" class="w-full rounded-md border-gray-300 shadow-sm text-sm focus:border-blue-500 focus:ring-blue-500">
-                                    <option value="cash" {{ old('payment_method') == 'cash' ? 'selected' : '' }}>Cash</option>
-                                    <option value="mpesa" {{ old('payment_method') == 'mpesa' ? 'selected' : '' }}>M-Pesa</option>
-                                    <option value="bank" {{ old('payment_method') == 'bank' ? 'selected' : '' }}>Bank Transfer</option>
+                                    @foreach(\App\Enums\PaymentMethod::cases() as $method)
+                                        <option value="{{ $method->value }}" {{ old('payment_method') == $method->value ? 'selected' : '' }}>{{ $method->label() }}</option>
+                                    @endforeach
                                 </select>
                                 @error('payment_method') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                             </div>
@@ -173,11 +173,8 @@
                                         <td class="px-4 py-3 text-gray-700">{{ $payment->payment_date->format('M d, Y') }}</td>
                                         <td class="px-4 py-3 font-semibold text-green-700">KES {{ number_format($payment->amount, 2) }}</td>
                                         <td class="px-4 py-3">
-                                            <span class="px-2 py-1 text-xs rounded-full
-                                                {{ $payment->payment_method === 'cash' ? 'bg-gray-100 text-gray-700' : '' }}
-                                                {{ $payment->payment_method === 'mpesa' ? 'bg-green-100 text-green-700' : '' }}
-                                                {{ $payment->payment_method === 'bank' ? 'bg-blue-100 text-blue-700' : '' }}">
-                                                {{ ucfirst($payment->payment_method) }}
+                                            <span class="px-2 py-1 text-xs rounded-full {{ $payment->payment_method->badgeClass() }}">
+                                                {{ $payment->payment_method->label() }}
                                             </span>
                                         </td>
                                         <td class="px-4 py-3 text-gray-500">{{ $payment->reference_number ?? '—' }}</td>

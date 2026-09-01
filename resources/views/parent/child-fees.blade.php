@@ -93,7 +93,7 @@
                                     <tr>
                                         <td class="px-4 py-3">{{ $payment->payment_date->format('M d, Y') }}</td>
                                         <td class="px-4 py-3 font-semibold text-green-700">KES {{ number_format($payment->amount, 2) }}</td>
-                                        <td class="px-4 py-3">{{ ucfirst($payment->payment_method) }}</td>
+                                        <td class="px-4 py-3">{{ $payment->payment_method->label() }}</td>
                                         <td class="px-4 py-3 text-gray-500">{{ $payment->reference_number ?? '—' }}</td>
                                     </tr>
                                 @endforeach

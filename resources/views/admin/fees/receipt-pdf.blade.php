@@ -63,7 +63,7 @@
     <tr>
         <td class="label">Payment Method</td>
         <td class="value">
-            <span class="badge">{{ strtoupper($payment->payment_method) }}</span>
+            <span class="badge">{{ strtoupper($payment->payment_method->label()) }}</span>
         </td>
     </tr>
     @if($payment->reference_number)
