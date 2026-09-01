@@ -74,7 +74,7 @@ class Grading
     {
         $base = strtolower(substr(self::letter($percentage), 0, 1));
 
-        return 'grade-badge grade-' . $base;
+        return 'grade-badge grade-'.$base;
     }
 
     /**
@@ -87,10 +87,10 @@ class Grading
     public static function scaleForJs(): array
     {
         $tiers = config('grading.tier_colours');
-        $out   = [];
+        $out = [];
 
         foreach (config('grading.letters') as $minimum => $band) {
-            $tier  = strtoupper(substr($band['letter'], 0, 1));
+            $tier = strtoupper(substr($band['letter'], 0, 1));
             $out[] = ['min' => (int) $minimum, 'text' => ($tiers[$tier] ?? end($tiers))['text']];
         }
 

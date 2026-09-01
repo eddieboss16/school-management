@@ -27,19 +27,23 @@ class Attendance extends Model
     ];
 
     // Relationships
-    public function class() {
+    public function class()
+    {
         return $this->belongsTo(SchoolClass::class, 'class_id');
     }
 
-    public function student() {
+    public function student()
+    {
         return $this->belongsTo(User::class, 'student_id');
     }
 
-    public function markedBy() {
+    public function markedBy()
+    {
         return $this->belongsTo(User::class, 'marked_by');
     }
 
-    public function term() {
+    public function term()
+    {
         return $this->belongsTo(Term::class);
     }
 }

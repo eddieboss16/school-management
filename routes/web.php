@@ -1,30 +1,30 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\EnrollmentController;
-use App\Http\Controllers\ReportCardController;
-use App\Http\Controllers\AttendanceController;
-use App\Http\Controllers\GradeController;
-use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
-use App\Http\Controllers\Admin\StudentController;
-use App\Http\Controllers\Admin\TeacherController;
-use App\Http\Controllers\Admin\StreamController;
-use App\Http\Controllers\Admin\SubjectController;
 use App\Http\Controllers\Admin\ClassController;
-use App\Http\Controllers\Admin\TermController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\FeesController;
+use App\Http\Controllers\Admin\StreamController;
+use App\Http\Controllers\Admin\StudentController;
+use App\Http\Controllers\Admin\SubjectController;
+use App\Http\Controllers\Admin\TeacherController;
+use App\Http\Controllers\Admin\TermController;
+use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\EnrollmentController;
+use App\Http\Controllers\GradeController;
 use App\Http\Controllers\Parent\DashboardController as ParentDashboardController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReportCardController;
 use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
 use App\Http\Controllers\Teacher\DashboardController as TeacherDashboardController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
 });
 
 Route::get('/dashboard', [StudentDashboardController::class, 'index'])
-->middleware(['auth', 'verified', 'role:student'])
-->name('dashboard');
+    ->middleware(['auth', 'verified', 'role:student'])
+    ->name('dashboard');
 
 // Student attendance route
 Route::get('/student/attendance', [StudentDashboardController::class, 'attendance'])
@@ -33,20 +33,20 @@ Route::get('/student/attendance', [StudentDashboardController::class, 'attendanc
 
 // Student grades route
 Route::get('/student/grades', [StudentDashboardController::class, 'grades'])
-->middleware(['auth', 'role:student'])
-->name('student.grades');
+    ->middleware(['auth', 'role:student'])
+    ->name('student.grades');
 
 // Student report card route
 Route::get('/student/report-card', [ReportCardController::class, 'studentReportCard'])
-->middleware(['auth', 'role:student'])->name('student.report');
+    ->middleware(['auth', 'role:student'])->name('student.report');
 
 // Student PDF download
 Route::get('/student/report-card/pdf', [ReportCardController::class, 'studentDownloadPdf'])
-->middleware(['auth', 'role:student'])->name('student.report.pdf');
+    ->middleware(['auth', 'role:student'])->name('student.report.pdf');
 
 // Student fees
 Route::get('/student/fees', [App\Http\Controllers\Student\DashboardController::class, 'fees'])
-->middleware(['auth', 'role:student'])->name('student.fees');
+    ->middleware(['auth', 'role:student'])->name('student.fees');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -63,7 +63,7 @@ Route::middleware(['auth', 'role:parent'])->group(function () {
     Route::get('/parent/child/{id}/fees', [ParentDashboardController::class, 'fees'])->name('parent.child.fees');
 });
 
- // Admin
+// Admin
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
     Route::get('/admin/activity-log', [AdminDashboardController::class, 'activityLog'])->name('admin.activity-log');
@@ -116,7 +116,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/admin/classes/{id}/enrollments/bulk', [EnrollmentController::class, 'bulkEnroll'])
         ->name('admin.enrollments.bulk');
 
-        // Report card routes
+    // Report card routes
     Route::get('/admin/reports', [ReportCardController::class, 'index'])
         ->name('admin.reports.index');
     Route::get('/admin/reports/student/{id}', [ReportCardController::class, 'generate'])
@@ -151,35 +151,35 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::delete('/admin/terms/{id}', [TermController::class, 'destroy'])->name('admin.terms.destroy');
 });
 
- // Teacher
+// Teacher
 Route::middleware(['auth', 'role:teacher'])->group(function () {
     Route::get('/teacher/dashboard', [TeacherDashboardController::class, 'index'])->name('teacher.dashboard');
 
     // Attendance routes
     Route::get('/teacher/classes/{id}/attendance/mark', [AttendanceController::class, 'mark'])
-    ->name('teacher.attendance.mark');
+        ->name('teacher.attendance.mark');
     Route::post('/teacher/classes/{id}/attendance', [AttendanceController::class, 'store'])
-    ->name('teacher.attendance.store');
+        ->name('teacher.attendance.store');
     Route::get('/teacher/classes/{id}/attendance/history', [AttendanceController::class, 'history'])
-    ->name('teacher.attendance.history');
+        ->name('teacher.attendance.history');
 
     // Grade routes
     Route::get('/teacher/classes/{id}/grades/enter', [GradeController::class, 'enter'])
-    ->name('teacher.grades.enter');
+        ->name('teacher.grades.enter');
     Route::post('/teacher/classes/{id}/grades', [GradeController::class, 'store'])
-    ->name('teacher.grades.store');
+        ->name('teacher.grades.store');
     Route::get('/teacher/classes/{id}/grade', [GradeController::class, 'view'])
-    ->name('teacher.grades.view');
+        ->name('teacher.grades.view');
     Route::get('/teacher/classes/{id}/grades/export', [GradeController::class, 'exportCsv'])
-    ->name('teacher.grades.export');
+        ->name('teacher.grades.export');
 
     // Add these new routes
     Route::get('/teacher/classes/{id}/grades/{assessmentType}/edit', [GradeController::class, 'edit'])
-    ->name('teacher.grades.edit');
+        ->name('teacher.grades.edit');
     Route::put('/teacher/classes/{id}/grades/{assessmentType}', [GradeController::class, 'update'])
-    ->name('teacher.grades.update');
+        ->name('teacher.grades.update');
     Route::delete('/teacher/classes/{id}/grades/{assessmentType}', [GradeController::class, 'destroy'])
-    ->name('teacher.grades.destroy');
+        ->name('teacher.grades.destroy');
 });
 
 use App\Http\Controllers\Auth\ParentRegistrationController;
@@ -190,4 +190,3 @@ Route::middleware('guest')->group(function () {
 });
 
 require __DIR__.'/auth.php';
-

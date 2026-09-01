@@ -16,12 +16,12 @@ class SchoolClassFactory extends Factory
     public function definition(): array
     {
         return [
-            'grade_id'   => Grade::factory(),
-            'stream_id'  => Stream::factory(),
+            'grade_id' => Grade::factory(),
+            'stream_id' => Stream::factory(),
             'subject_id' => Subject::factory(),
             'teacher_id' => User::factory()->create(['usertype' => 'teacher'])->id,
             'class_code' => strtoupper(Str::random(6)),
-            'capacity'   => 40,
+            'capacity' => 40,
         ];
     }
 }

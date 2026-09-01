@@ -20,19 +20,19 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 dataset('student routes expecting a student id', [
-    'edit'    => ['get', 'admin.students.edit'],
-    'update'  => ['put', 'admin.students.update'],
+    'edit' => ['get', 'admin.students.edit'],
+    'update' => ['put', 'admin.students.update'],
     'destroy' => ['delete', 'admin.students.destroy'],
 ]);
 
 dataset('teacher routes expecting a teacher id', [
-    'edit'    => ['get', 'admin.teachers.edit'],
-    'update'  => ['put', 'admin.teachers.update'],
+    'edit' => ['get', 'admin.teachers.edit'],
+    'update' => ['put', 'admin.teachers.update'],
     'destroy' => ['delete', 'admin.teachers.destroy'],
 ]);
 
 test('student routes reject a non-student id with a redirect and flash', function (string $verb, string $routeName) {
-    $admin   = User::factory()->create(['usertype' => 'admin']);
+    $admin = User::factory()->create(['usertype' => 'admin']);
     $teacher = User::factory()->create(['usertype' => 'teacher']);
 
     $this->actingAs($admin)
@@ -47,7 +47,7 @@ test('student routes reject a non-student id with a redirect and flash', functio
 })->with('student routes expecting a student id');
 
 test('teacher routes reject a non-teacher id with a redirect and flash', function (string $verb, string $routeName) {
-    $admin   = User::factory()->create(['usertype' => 'admin']);
+    $admin = User::factory()->create(['usertype' => 'admin']);
     $student = User::factory()->create(['usertype' => 'student']);
 
     $this->actingAs($admin)
@@ -72,7 +72,7 @@ test('a missing id is still a 404, not a redirect', function () {
 // ── Correct-type ids still work ─────────────────────────────────────────────
 
 test('the guard lets a correctly typed id through', function () {
-    $admin   = User::factory()->create(['usertype' => 'admin']);
+    $admin = User::factory()->create(['usertype' => 'admin']);
     $student = User::factory()->create(['usertype' => 'student']);
     $teacher = User::factory()->create(['usertype' => 'teacher']);
 

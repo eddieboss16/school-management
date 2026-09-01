@@ -42,42 +42,42 @@ function isolationStudentWithRecords(Stream $stream, Term $term, string $admissi
     $teacher = User::factory()->create(['usertype' => 'teacher']);
 
     $student = User::factory()->create([
-        'usertype'         => 'student',
-        'stream_id'        => $stream->id,
+        'usertype' => 'student',
+        'stream_id' => $stream->id,
         'admission_number' => $admissionNumber,
     ]);
 
     $class = SchoolClass::factory()->create([
         'teacher_id' => $teacher->id,
-        'grade_id'   => $stream->grade_id,
-        'stream_id'  => $stream->id,
+        'grade_id' => $stream->grade_id,
+        'stream_id' => $stream->id,
         'subject_id' => $subject->id,
     ]);
     $class->students()->attach($student->id);
 
     // entered_by is required by the schema even though the factory defaults it to null.
     StudentGrade::factory()->create([
-        'class_id'   => $class->id,
+        'class_id' => $class->id,
         'student_id' => $student->id,
-        'term_id'    => $term->id,
-        'score'      => $score,
-        'max_score'  => 100,
+        'term_id' => $term->id,
+        'score' => $score,
+        'max_score' => 100,
         'entered_by' => $teacher->id,
     ]);
 
     Attendance::create([
-        'class_id'   => $class->id,
+        'class_id' => $class->id,
         'student_id' => $student->id,
-        'term_id'    => $term->id,
-        'date'       => now(),
-        'status'     => $status,
-        'marked_by'  => $teacher->id,
+        'term_id' => $term->id,
+        'date' => now(),
+        'status' => $status,
+        'marked_by' => $teacher->id,
     ]);
 
     FeePayment::factory()->create([
         'student_id' => $student->id,
-        'term_id'    => $term->id,
-        'amount'     => $score * 10,
+        'term_id' => $term->id,
+        'amount' => $score * 10,
     ]);
 
     return [$student, $class];
@@ -86,9 +86,9 @@ function isolationStudentWithRecords(Stream $stream, Term $term, string $admissi
 /** Two independent students in the same stream, each with their own records. */
 function isolationTwoStudents(): array
 {
-    $grade  = Grade::factory()->create();
+    $grade = Grade::factory()->create();
     $stream = Stream::factory()->create(['grade_id' => $grade->id]);
-    $term   = Term::factory()->create(['is_active' => true]);
+    $term = Term::factory()->create(['is_active' => true]);
 
     [$studentA] = isolationStudentWithRecords($stream, $term, 'ADM-STU-A', 90, 'present');
     [$studentB] = isolationStudentWithRecords($stream, $term, 'ADM-STU-B', 30, 'absent');
@@ -109,8 +109,8 @@ test('no route behind the student role accepts an id parameter', function () {
             [],
             $route->parameterNames(),
             "Route [{$route->uri()}] takes a parameter. Student pages derive identity from the "
-            . 'session; adding a parameter opens a cross-student surface that needs its own '
-            . 'ownership check and its own isolation test.'
+            .'session; adding a parameter opens a cross-student surface that needs its own '
+            .'ownership check and its own isolation test.'
         );
     }
 });
@@ -201,13 +201,13 @@ test('student pages ignore an injected student id query parameter', function () 
     [$studentA, $studentB] = isolationTwoStudents();
 
     $response = $this->actingAs($studentA)
-        ->get(route('student.report') . '?student_id=' . $studentB->id . '&id=' . $studentB->id)
+        ->get(route('student.report').'?student_id='.$studentB->id.'&id='.$studentB->id)
         ->assertOk();
 
     expect($response->viewData('student')->id)->toBe($studentA->id);
 
     $feesResponse = $this->actingAs($studentA)
-        ->get(route('student.fees') . '?student_id=' . $studentB->id)
+        ->get(route('student.fees').'?student_id='.$studentB->id)
         ->assertOk();
 
     $studentIds = collect($feesResponse->viewData('payments'))->pluck('student_id')->unique()->all();
@@ -269,15 +269,15 @@ test('student cannot record a fee payment against another student', function () 
 
     $this->actingAs($studentA)
         ->post(route('admin.fees.student.payment', $studentB->id), [
-            'term_id'        => $term->id,
-            'amount'         => 1,
-            'payment_date'   => now()->format('Y-m-d'),
+            'term_id' => $term->id,
+            'amount' => 1,
+            'payment_date' => now()->format('Y-m-d'),
             'payment_method' => 'cash',
         ])
         ->assertRedirect(route('dashboard'));
 
     $this->assertDatabaseMissing('fee_payments', [
         'student_id' => $studentB->id,
-        'amount'     => 1,
+        'amount' => 1,
     ]);
 });

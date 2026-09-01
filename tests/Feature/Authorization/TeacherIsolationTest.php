@@ -30,14 +30,14 @@ uses(RefreshDatabase::class);
 function isolationTeacherWithClass(): array
 {
     $teacher = User::factory()->create(['usertype' => 'teacher']);
-    $grade   = Grade::factory()->create();
-    $stream  = Stream::factory()->create(['grade_id' => $grade->id]);
+    $grade = Grade::factory()->create();
+    $stream = Stream::factory()->create(['grade_id' => $grade->id]);
     $subject = Subject::factory()->create();
 
     $class = SchoolClass::factory()->create([
         'teacher_id' => $teacher->id,
-        'grade_id'   => $grade->id,
-        'stream_id'  => $stream->id,
+        'grade_id' => $grade->id,
+        'stream_id' => $stream->id,
         'subject_id' => $subject->id,
     ]);
 
@@ -57,13 +57,13 @@ function isolationTeacherWithClass(): array
 function isolationSeedGrade(SchoolClass $class, User $student, string $assessmentType = 'Midterm', float $score = 50): StudentGrade
 {
     return StudentGrade::factory()->create([
-        'class_id'        => $class->id,
-        'student_id'      => $student->id,
-        'term_id'         => Term::factory()->create()->id,
+        'class_id' => $class->id,
+        'student_id' => $student->id,
+        'term_id' => Term::factory()->create()->id,
         'assessment_type' => $assessmentType,
-        'score'           => $score,
-        'max_score'       => 100,
-        'entered_by'      => $class->teacher_id,
+        'score' => $score,
+        'max_score' => 100,
+        'entered_by' => $class->teacher_id,
     ]);
 }
 
@@ -127,13 +127,13 @@ test('teacher cannot enter grades into another teacher class', function () {
         ->post(route('teacher.grades.store', $classB->id), [
             'assessment_type' => 'Injected Exam',
             'assessment_date' => now()->format('Y-m-d'),
-            'max_score'       => 100,
-            'grades'          => [$studentB->id => ['score' => 99]],
+            'max_score' => 100,
+            'grades' => [$studentB->id => ['score' => 99]],
         ])
         ->assertStatus(404);
 
     $this->assertDatabaseMissing('student_grades', [
-        'class_id'        => $classB->id,
+        'class_id' => $classB->id,
         'assessment_type' => 'Injected Exam',
     ]);
 });
@@ -156,8 +156,8 @@ test('teacher cannot update grades in another teacher class', function () {
     $this->actingAs($teacherA)
         ->put(route('teacher.grades.update', [$classB->id, 'Midterm']), [
             'assessment_date' => now()->format('Y-m-d'),
-            'max_score'       => 100,
-            'grades'          => [$gradeB->id => ['score' => 5]],
+            'max_score' => 100,
+            'grades' => [$gradeB->id => ['score' => 5]],
         ])
         ->assertStatus(404);
 
@@ -173,8 +173,8 @@ test('teacher cannot update a grade belonging to another class through their own
     $this->actingAs($teacherA)
         ->put(route('teacher.grades.update', [$classA->id, 'Midterm']), [
             'assessment_date' => now()->format('Y-m-d'),
-            'max_score'       => 100,
-            'grades'          => [$gradeB->id => ['score' => 5]],
+            'max_score' => 100,
+            'grades' => [$gradeB->id => ['score' => 5]],
         ])
         ->assertStatus(404);
 
@@ -215,7 +215,7 @@ test('teacher cannot mark attendance for another teacher class', function () {
 
     $this->actingAs($teacherA)
         ->post(route('teacher.attendance.store', $classB->id), [
-            'date'       => now()->format('Y-m-d'),
+            'date' => now()->format('Y-m-d'),
             'attendance' => [$studentB->id => 'absent'],
         ])
         ->assertStatus(404);
@@ -242,15 +242,15 @@ test('teacher can enter and then view grades in their own class', function () {
         ->post(route('teacher.grades.store', $classA->id), [
             'assessment_type' => 'Midterm',
             'assessment_date' => now()->format('Y-m-d'),
-            'max_score'       => 100,
-            'grades'          => [$studentA->id => ['score' => 71]],
+            'max_score' => 100,
+            'grades' => [$studentA->id => ['score' => 71]],
         ])
         ->assertRedirect(route('teacher.grades.view', $classA->id));
 
     $this->assertDatabaseHas('student_grades', [
-        'class_id'   => $classA->id,
+        'class_id' => $classA->id,
         'student_id' => $studentA->id,
-        'score'      => 71,
+        'score' => 71,
     ]);
 
     $this->actingAs($teacherA)
@@ -269,8 +269,8 @@ test('teacher can edit and update grades in their own class', function () {
     $this->actingAs($teacherA)
         ->put(route('teacher.grades.update', [$classA->id, 'Midterm']), [
             'assessment_date' => now()->format('Y-m-d'),
-            'max_score'       => 100,
-            'grades'          => [$gradeA->id => ['score' => 88]],
+            'max_score' => 100,
+            'grades' => [$gradeA->id => ['score' => 88]],
         ])
         ->assertRedirect(route('teacher.grades.view', $classA->id));
 
@@ -306,15 +306,15 @@ test('teacher can mark and review attendance for their own class', function () {
 
     $this->actingAs($teacherA)
         ->post(route('teacher.attendance.store', $classA->id), [
-            'date'       => now()->format('Y-m-d'),
+            'date' => now()->format('Y-m-d'),
             'attendance' => [$studentA->id => 'present'],
         ])
         ->assertRedirect(route('teacher.attendance.history', $classA->id));
 
     $this->assertDatabaseHas('attendances', [
-        'class_id'   => $classA->id,
+        'class_id' => $classA->id,
         'student_id' => $studentA->id,
-        'status'     => 'present',
+        'status' => 'present',
     ]);
 
     $this->actingAs($teacherA)
@@ -359,14 +359,14 @@ test('grade entry rejects a student who is not enrolled in the class', function 
         ->post(route('teacher.grades.store', $classA->id), [
             'assessment_type' => 'Outsider Exam',
             'assessment_date' => now()->format('Y-m-d'),
-            'max_score'       => 100,
-            'grades'          => [$studentB->id => ['score' => 99]],
+            'max_score' => 100,
+            'grades' => [$studentB->id => ['score' => 99]],
         ])
         ->assertStatus(302)
         ->assertSessionHasErrors('grades');
 
     $this->assertDatabaseMissing('student_grades', [
-        'class_id'   => $classA->id,
+        'class_id' => $classA->id,
         'student_id' => $studentB->id,
     ]);
 });
@@ -378,14 +378,14 @@ test('attendance marking rejects a student who is not enrolled in the class', fu
 
     $this->actingAs($teacherA)
         ->post(route('teacher.attendance.store', $classA->id), [
-            'date'       => now()->format('Y-m-d'),
+            'date' => now()->format('Y-m-d'),
             'attendance' => [$studentB->id => 'absent'],
         ])
         ->assertStatus(302)
         ->assertSessionHasErrors('attendance');
 
     $this->assertDatabaseMissing('attendances', [
-        'class_id'   => $classA->id,
+        'class_id' => $classA->id,
         'student_id' => $studentB->id,
     ]);
 });
@@ -399,8 +399,8 @@ test('a mixed batch is rejected whole rather than silently dropping the outsider
         ->post(route('teacher.grades.store', $classA->id), [
             'assessment_type' => 'Mixed Batch',
             'assessment_date' => now()->format('Y-m-d'),
-            'max_score'       => 100,
-            'grades'          => [
+            'max_score' => 100,
+            'grades' => [
                 $studentA->id => ['score' => 60],
                 $studentB->id => ['score' => 99],
             ],
@@ -420,7 +420,7 @@ test('attendance for an unenrolled student does not wipe existing records for th
 
     $this->actingAs($teacherA)
         ->post(route('teacher.attendance.store', $classA->id), [
-            'date'       => $date,
+            'date' => $date,
             'attendance' => [$studentA->id => 'present'],
         ])
         ->assertRedirect(route('teacher.attendance.history', $classA->id));
@@ -429,16 +429,16 @@ test('attendance for an unenrolled student does not wipe existing records for th
     // check has to reject before that delete runs.
     $this->actingAs($teacherA)
         ->post(route('teacher.attendance.store', $classA->id), [
-            'date'       => $date,
+            'date' => $date,
             'attendance' => [$studentB->id => 'absent'],
         ])
         ->assertStatus(302)
         ->assertSessionHasErrors('attendance');
 
     $this->assertDatabaseHas('attendances', [
-        'class_id'   => $classA->id,
+        'class_id' => $classA->id,
         'student_id' => $studentA->id,
-        'status'     => 'present',
+        'status' => 'present',
         'deleted_at' => null,
     ]);
 });

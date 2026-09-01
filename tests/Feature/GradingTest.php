@@ -21,30 +21,30 @@ uses(RefreshDatabase::class);
 
 /** [percentage, letter, points] across every band and its lower edge. */
 dataset('kcse boundaries', [
-    'top of scale'  => [100.0, 'A', 12],
-    'exactly A'     => [80.0, 'A', 12],
-    'just below A'  => [79.99, 'A-', 11],
-    'exactly A-'    => [75.0, 'A-', 11],
+    'top of scale' => [100.0, 'A', 12],
+    'exactly A' => [80.0, 'A', 12],
+    'just below A' => [79.99, 'A-', 11],
+    'exactly A-' => [75.0, 'A-', 11],
     'just below A-' => [74.99, 'B+', 10],
-    'exactly B+'    => [70.0, 'B+', 10],
+    'exactly B+' => [70.0, 'B+', 10],
     'just below B+' => [69.99, 'B', 9],
-    'exactly B'     => [65.0, 'B', 9],
-    'just below B'  => [64.99, 'B-', 8],
-    'exactly B-'    => [60.0, 'B-', 8],
+    'exactly B' => [65.0, 'B', 9],
+    'just below B' => [64.99, 'B-', 8],
+    'exactly B-' => [60.0, 'B-', 8],
     'just below B-' => [59.99, 'C+', 7],
-    'exactly C+'    => [55.0, 'C+', 7],
+    'exactly C+' => [55.0, 'C+', 7],
     'just below C+' => [54.99, 'C', 6],
-    'exactly C'     => [50.0, 'C', 6],
-    'just below C'  => [49.99, 'C-', 5],
-    'exactly C-'    => [45.0, 'C-', 5],
+    'exactly C' => [50.0, 'C', 6],
+    'just below C' => [49.99, 'C-', 5],
+    'exactly C-' => [45.0, 'C-', 5],
     'just below C-' => [44.99, 'D+', 4],
-    'exactly D+'    => [40.0, 'D+', 4],
+    'exactly D+' => [40.0, 'D+', 4],
     'just below D+' => [39.99, 'D', 3],
-    'exactly D'     => [35.0, 'D', 3],
-    'just below D'  => [34.99, 'D-', 2],
-    'exactly D-'    => [30.0, 'D-', 2],
+    'exactly D' => [35.0, 'D', 3],
+    'just below D' => [34.99, 'D-', 2],
+    'exactly D-' => [30.0, 'D-', 2],
     'just below D-' => [29.99, 'E', 1],
-    'zero'          => [0.0, 'E', 1],
+    'zero' => [0.0, 'E', 1],
 ]);
 
 test('letter and points at each KCSE boundary', function (float $percentage, string $letter, int $points) {
@@ -72,17 +72,17 @@ test('letter grade accepts int and null', function () {
 // ── Colour is keyed to the letter tier, not a separate percentage cutoff ────
 
 dataset('tier boundaries', [
-    'A  top'    => [100.0, 'A'],
-    'A  exact'  => [80.0, 'A'],
-    'A- still A'=> [75.0, 'A'],
+    'A  top' => [100.0, 'A'],
+    'A  exact' => [80.0, 'A'],
+    'A- still A' => [75.0, 'A'],
     'B+ starts' => [74.99, 'B'],
-    'B- exact'  => [60.0, 'B'],
+    'B- exact' => [60.0, 'B'],
     'C+ starts' => [59.99, 'C'],
-    'C- exact'  => [45.0, 'C'],
+    'C- exact' => [45.0, 'C'],
     'D+ starts' => [44.99, 'D'],
-    'D- exact'  => [30.0, 'D'],
+    'D- exact' => [30.0, 'D'],
     'E  starts' => [29.99, 'E'],
-    'zero'      => [0.0, 'E'],
+    'zero' => [0.0, 'E'],
 ]);
 
 test('colour tier is the base letter at each boundary', function (float $percentage, string $expected) {
@@ -115,7 +115,7 @@ test('screen colours agree with the PDF stylesheet tier for tier', function () {
         $tier = Grading::tier($score);
 
         expect(Grading::pdfBadgeClass($score))
-            ->toBe('grade-badge grade-' . strtolower($tier), "tier mismatch at {$score}%");
+            ->toBe('grade-badge grade-'.strtolower($tier), "tier mismatch at {$score}%");
     }
 });
 
@@ -128,7 +128,7 @@ test('the js scale exposes every tier in descending order', function () {
         ->and(end($scale)['min'])->toBe(0)
         ->and(end($scale)['text'])->toBe('text-red-600');
 
-    $mins   = array_column($scale, 'min');
+    $mins = array_column($scale, 'min');
     $sorted = $mins;
     rsort($sorted);
 
@@ -149,7 +149,7 @@ test('pdf badge class collapses to the base letter the stylesheet defines', func
 
 test('the scale is driven by config, not hardcoded in the helper', function () {
     config([
-        'grading.letters'  => [90 => ['letter' => 'Distinction', 'points' => 2]],
+        'grading.letters' => [90 => ['letter' => 'Distinction', 'points' => 2]],
         'grading.fallback' => ['letter' => 'Pass', 'points' => 1],
     ]);
 
@@ -161,22 +161,22 @@ test('the scale is driven by config, not hardcoded in the helper', function () {
 // ── The email and the report card must agree ────────────────────────────────
 
 test('the emailed letter matches the report card letter at every KCSE boundary', function () {
-    $grade   = Grade::factory()->create();
-    $stream  = Stream::factory()->create(['grade_id' => $grade->id]);
+    $grade = Grade::factory()->create();
+    $stream = Stream::factory()->create(['grade_id' => $grade->id]);
     $teacher = User::factory()->create(['usertype' => 'teacher']);
-    $parent  = User::factory()->create(['usertype' => 'parent']);
+    $parent = User::factory()->create(['usertype' => 'parent']);
     $student = User::factory()->create([
         'usertype' => 'student', 'stream_id' => $stream->id, 'parent_id' => $parent->id,
     ]);
 
-    $subject = new Subject();
+    $subject = new Subject;
     $subject->name = 'Mathematics';
     $subject->code = 'MTH-GRD';
     $subject->save();
 
     $class = SchoolClass::factory()->create([
         'teacher_id' => $teacher->id, 'grade_id' => $grade->id,
-        'stream_id'  => $stream->id, 'subject_id' => $subject->id,
+        'stream_id' => $stream->id, 'subject_id' => $subject->id,
     ]);
 
     foreach ([100, 80, 79, 75, 74, 70, 69, 65, 64, 60, 59, 55, 54, 50, 49, 45, 44, 40, 39, 35, 34, 30, 29, 0] as $score) {

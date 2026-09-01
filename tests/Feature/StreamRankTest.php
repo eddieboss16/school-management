@@ -34,28 +34,28 @@ uses(RefreshDatabase::class);
  */
 function streamOf(array $scores): array
 {
-    $admin   = User::factory()->create(['usertype' => 'admin']);
+    $admin = User::factory()->create(['usertype' => 'admin']);
     $teacher = User::factory()->create(['usertype' => 'teacher']);
-    $grade   = Grade::factory()->create();
-    $stream  = Stream::factory()->create(['grade_id' => $grade->id]);
+    $grade = Grade::factory()->create();
+    $stream = Stream::factory()->create(['grade_id' => $grade->id]);
     $subject = Subject::factory()->create();
-    $term    = Term::factory()->create(['is_active' => true]);
-    $other   = Term::factory()->create(['is_active' => false]);
+    $term = Term::factory()->create(['is_active' => true]);
+    $other = Term::factory()->create(['is_active' => false]);
 
     $class = SchoolClass::factory()->create([
         'teacher_id' => $teacher->id,
-        'grade_id'   => $grade->id,
-        'stream_id'  => $stream->id,
+        'grade_id' => $grade->id,
+        'stream_id' => $stream->id,
         'subject_id' => $subject->id,
     ]);
 
     $students = [];
-    $parents  = [];
+    $parents = [];
 
     foreach ($scores as $label => $score) {
-        $parent  = User::factory()->create(['usertype' => 'parent']);
+        $parent = User::factory()->create(['usertype' => 'parent']);
         $student = User::factory()->create([
-            'usertype'  => 'student',
+            'usertype' => 'student',
             'stream_id' => $stream->id,
             'parent_id' => $parent->id,
         ]);
@@ -64,19 +64,19 @@ function streamOf(array $scores): array
 
         if ($score !== null) {
             StudentGrade::factory()->create([
-                'student_id'      => $student->id,
-                'class_id'        => $class->id,
-                'term_id'         => $term->id,
-                'score'           => $score,
-                'max_score'       => 100,
+                'student_id' => $student->id,
+                'class_id' => $class->id,
+                'term_id' => $term->id,
+                'score' => $score,
+                'max_score' => 100,
                 'assessment_type' => 'Exam',
                 'assessment_date' => now()->format('Y-m-d'),
-                'entered_by'      => $teacher->id,
+                'entered_by' => $teacher->id,
             ]);
         }
 
         $students[$label] = $student;
-        $parents[$label]  = $parent;
+        $parents[$label] = $parent;
     }
 
     return compact('students', 'parents', 'term', 'class', 'teacher', 'admin')
@@ -127,14 +127,14 @@ test('ranking is scoped to the term', function () {
     // Reverse the standings in the other term.
     foreach (['a' => 30, 'b' => 95] as $label => $score) {
         StudentGrade::factory()->create([
-            'student_id'      => $f['students'][$label]->id,
-            'class_id'        => $f['class']->id,
-            'term_id'         => $f['otherTerm']->id,
-            'score'           => $score,
-            'max_score'       => 100,
+            'student_id' => $f['students'][$label]->id,
+            'class_id' => $f['class']->id,
+            'term_id' => $f['otherTerm']->id,
+            'score' => $score,
+            'max_score' => 100,
             'assessment_type' => 'Exam',
             'assessment_date' => now()->format('Y-m-d'),
-            'entered_by'      => $f['teacher']->id,
+            'entered_by' => $f['teacher']->id,
         ]);
     }
 
@@ -147,14 +147,14 @@ test('with no term the ranking spans every term at once', function () {
 
     // b outscores a heavily in the other term, enough to overturn the order.
     StudentGrade::factory()->create([
-        'student_id'      => $f['students']['b']->id,
-        'class_id'        => $f['class']->id,
-        'term_id'         => $f['otherTerm']->id,
-        'score'           => 100,
-        'max_score'       => 100,
+        'student_id' => $f['students']['b']->id,
+        'class_id' => $f['class']->id,
+        'term_id' => $f['otherTerm']->id,
+        'score' => 100,
+        'max_score' => 100,
         'assessment_type' => 'Exam',
         'assessment_date' => now()->format('Y-m-d'),
-        'entered_by'      => $f['teacher']->id,
+        'entered_by' => $f['teacher']->id,
     ]);
 
     // a: 90. b: mean of 60 and 100 = 80.
@@ -174,12 +174,12 @@ test('students in another stream do not affect the ranking', function () {
 // ── Every surface reports the same rank ─────────────────────────────────────
 
 test('admin, student and parent report cards agree on the rank', function () {
-    $f      = streamOf(['top' => 90, 'bottom' => 50]);
+    $f = streamOf(['top' => 90, 'bottom' => 50]);
     $termId = $f['term']->id;
 
     foreach (['top', 'bottom'] as $label) {
         $student = $f['students'][$label];
-        $parent  = $f['parents'][$label];
+        $parent = $f['parents'][$label];
 
         $fromAdmin = $this->actingAs($f['admin'])
             ->get(route('admin.reports.generate', ['id' => $student->id, 'term_id' => $termId]))

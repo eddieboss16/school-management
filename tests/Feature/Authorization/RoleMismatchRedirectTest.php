@@ -16,21 +16,21 @@ uses(RefreshDatabase::class);
 
 /** [acting usertype, foreign route name, route name of the acting user's own dashboard] */
 dataset('role mismatches', [
-    'admin hitting a teacher route'   => ['admin', 'teacher.dashboard', 'admin.dashboard'],
-    'admin hitting a parent route'    => ['admin', 'parent.dashboard', 'admin.dashboard'],
-    'admin hitting a student route'   => ['admin', 'dashboard', 'admin.dashboard'],
+    'admin hitting a teacher route' => ['admin', 'teacher.dashboard', 'admin.dashboard'],
+    'admin hitting a parent route' => ['admin', 'parent.dashboard', 'admin.dashboard'],
+    'admin hitting a student route' => ['admin', 'dashboard', 'admin.dashboard'],
 
-    'teacher hitting an admin route'  => ['teacher', 'admin.dashboard', 'teacher.dashboard'],
-    'teacher hitting a parent route'  => ['teacher', 'parent.dashboard', 'teacher.dashboard'],
+    'teacher hitting an admin route' => ['teacher', 'admin.dashboard', 'teacher.dashboard'],
+    'teacher hitting a parent route' => ['teacher', 'parent.dashboard', 'teacher.dashboard'],
     'teacher hitting a student route' => ['teacher', 'dashboard', 'teacher.dashboard'],
 
-    'student hitting an admin route'  => ['student', 'admin.dashboard', 'dashboard'],
+    'student hitting an admin route' => ['student', 'admin.dashboard', 'dashboard'],
     'student hitting a teacher route' => ['student', 'teacher.dashboard', 'dashboard'],
-    'student hitting a parent route'  => ['student', 'parent.dashboard', 'dashboard'],
+    'student hitting a parent route' => ['student', 'parent.dashboard', 'dashboard'],
 
-    'parent hitting an admin route'   => ['parent', 'admin.dashboard', 'parent.dashboard'],
-    'parent hitting a teacher route'  => ['parent', 'teacher.dashboard', 'parent.dashboard'],
-    'parent hitting a student route'  => ['parent', 'dashboard', 'parent.dashboard'],
+    'parent hitting an admin route' => ['parent', 'admin.dashboard', 'parent.dashboard'],
+    'parent hitting a teacher route' => ['parent', 'teacher.dashboard', 'parent.dashboard'],
+    'parent hitting a student route' => ['parent', 'dashboard', 'parent.dashboard'],
 ]);
 
 test('a role mismatch redirects to the acting user own dashboard', function (string $usertype, string $foreignRoute, string $ownDashboard) {

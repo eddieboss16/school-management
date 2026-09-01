@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         // Rename attendance → attendances if the old table still exists
-        if (Schema::hasTable('attendance') && !Schema::hasTable('attendances')) {
+        if (Schema::hasTable('attendance') && ! Schema::hasTable('attendances')) {
             Schema::rename('attendance', 'attendances');
         }
     }
@@ -22,7 +22,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        if (Schema::hasTable('attendances') && !Schema::hasTable('attendance')) {
+        if (Schema::hasTable('attendances') && ! Schema::hasTable('attendance')) {
             Schema::rename('attendances', 'attendance');
         }
     }

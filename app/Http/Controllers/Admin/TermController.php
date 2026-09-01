@@ -3,14 +3,15 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Term;
+use Illuminate\Http\Request;
 
 class TermController extends Controller
 {
     public function index()
     {
         $terms = Term::orderBy('start_date', 'desc')->get();
+
         return view('admin.terms', compact('terms'));
     }
 
@@ -22,10 +23,10 @@ class TermController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name'       => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255'],
             'start_date' => ['required', 'date'],
-            'end_date'   => ['required', 'date', 'after:start_date'],
-            'is_active'  => ['sometimes', 'boolean'],
+            'end_date' => ['required', 'date', 'after:start_date'],
+            'is_active' => ['sometimes', 'boolean'],
         ]);
 
         // Only one active term at a time
@@ -34,10 +35,10 @@ class TermController extends Controller
         }
 
         Term::create([
-            'name'       => $request->name,
+            'name' => $request->name,
             'start_date' => $request->start_date,
-            'end_date'   => $request->end_date,
-            'is_active'  => $request->boolean('is_active'),
+            'end_date' => $request->end_date,
+            'is_active' => $request->boolean('is_active'),
         ]);
 
         return redirect()->route('admin.terms')->with('success', 'Term created successfully!');
@@ -46,6 +47,7 @@ class TermController extends Controller
     public function edit($id)
     {
         $term = Term::findOrFail($id);
+
         return view('admin.terms-edit', compact('term'));
     }
 
@@ -54,22 +56,22 @@ class TermController extends Controller
         $term = Term::findOrFail($id);
 
         $request->validate([
-            'name'       => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255'],
             'start_date' => ['required', 'date'],
-            'end_date'   => ['required', 'date', 'after:start_date'],
-            'is_active'  => ['sometimes', 'boolean'],
+            'end_date' => ['required', 'date', 'after:start_date'],
+            'is_active' => ['sometimes', 'boolean'],
         ]);
 
         // Only one active term at a time
-        if ($request->boolean('is_active') && !$term->is_active) {
+        if ($request->boolean('is_active') && ! $term->is_active) {
             Term::where('is_active', true)->update(['is_active' => false]);
         }
 
         $term->update([
-            'name'       => $request->name,
+            'name' => $request->name,
             'start_date' => $request->start_date,
-            'end_date'   => $request->end_date,
-            'is_active'  => $request->boolean('is_active'),
+            'end_date' => $request->end_date,
+            'is_active' => $request->boolean('is_active'),
         ]);
 
         return redirect()->route('admin.terms')->with('success', 'Term updated successfully!');
@@ -84,6 +86,7 @@ class TermController extends Controller
         }
 
         $term->delete();
+
         return redirect()->route('admin.terms')->with('success', 'Term deleted successfully!');
     }
 }

@@ -2,13 +2,13 @@
 
 namespace App\Notifications;
 
+use App\Models\SchoolClass;
+use App\Models\User;
+use App\Support\Grading;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use App\Models\User;
-use App\Models\SchoolClass;
-use App\Support\Grading;
 
 class GradesPostedNotification extends Notification implements ShouldQueue
 {
@@ -32,9 +32,9 @@ class GradesPostedNotification extends Notification implements ShouldQueue
     {
         $this->class->loadMissing(['subject', 'grade', 'stream']);
 
-        $subject    = $this->class->subject->name;
-        $className  = $this->class->grade->name . ' ' . $this->class->stream->name;
-        $grade      = Grading::letter($this->percentage);
+        $subject = $this->class->subject->name;
+        $className = $this->class->grade->name.' '.$this->class->stream->name;
+        $grade = Grading::letter($this->percentage);
 
         return (new MailMessage)
             ->subject("Grades posted for {$this->student->name} – {$subject}")
@@ -44,7 +44,7 @@ class GradesPostedNotification extends Notification implements ShouldQueue
             ->line("**Class:** {$className}")
             ->line("**Assessment:** {$this->assessmentType}")
             ->line("**Score:** {$this->score} / {$this->maxScore} ({$this->percentage}%) — Grade: {$grade}")
-            ->line("Log in to the parent portal to view the full report card.")
+            ->line('Log in to the parent portal to view the full report card.')
             ->salutation('Regards, School Administration');
     }
 }

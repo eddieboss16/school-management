@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\Subject;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\Subject;
 
 class SubjectSeeder extends Seeder
 {
@@ -13,6 +13,7 @@ class SubjectSeeder extends Seeder
         // Check if subjects already exist
         if (Subject::count() > 0) {
             $this->command->info('Subject already exist. Skipping seeder.');
+
             return;
         }
 
@@ -28,7 +29,7 @@ class SubjectSeeder extends Seeder
         Subject::create(['name' => 'Business Studies', 'code' => 'BUS', 'description' => 'Business Studies subject']);
         Subject::create(['name' => 'Computer Science', 'code' => 'CS', 'description' => 'Computer Science subject']);
         Subject::create(['name' => 'Agriculture', 'code' => 'AGR', 'description' => 'Agriculture subject']);
-            
+
         $this->command->info('Subject seeded successfully.');
     }
 }

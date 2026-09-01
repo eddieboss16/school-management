@@ -18,37 +18,37 @@ function makeGradeEntry(User $student, SchoolClass $class, Term $term, float $sc
     $teacher = User::factory()->create(['usertype' => 'teacher']);
 
     StudentGrade::factory()->create([
-        'student_id'      => $student->id,
-        'class_id'        => $class->id,
-        'term_id'         => $term->id,
-        'score'           => $score,
-        'max_score'       => $maxScore,
+        'student_id' => $student->id,
+        'class_id' => $class->id,
+        'term_id' => $term->id,
+        'score' => $score,
+        'max_score' => $maxScore,
         'assessment_type' => 'Exam',
         'assessment_date' => now()->format('Y-m-d'),
-        'entered_by'      => $teacher->id,
+        'entered_by' => $teacher->id,
     ]);
 }
 
 // ── Rank tests ────────────────────────────────────────────────────────────────
 
 test('student with highest average is ranked 1st', function () {
-    $admin   = User::factory()->create(['usertype' => 'admin']);
-    $grade   = Grade::factory()->create();
-    $stream  = Stream::factory()->create(['grade_id' => $grade->id]);
+    $admin = User::factory()->create(['usertype' => 'admin']);
+    $grade = Grade::factory()->create();
+    $stream = Stream::factory()->create(['grade_id' => $grade->id]);
     $subject = Subject::factory()->create();
-    $term    = Term::factory()->create(['is_active' => true]);
+    $term = Term::factory()->create(['is_active' => true]);
 
     $class = SchoolClass::factory()->create([
-        'grade_id'   => $grade->id,
-        'stream_id'  => $stream->id,
+        'grade_id' => $grade->id,
+        'stream_id' => $stream->id,
         'subject_id' => $subject->id,
     ]);
 
-    $top    = User::factory()->create(['usertype' => 'student', 'stream_id' => $stream->id]);
+    $top = User::factory()->create(['usertype' => 'student', 'stream_id' => $stream->id]);
     $middle = User::factory()->create(['usertype' => 'student', 'stream_id' => $stream->id]);
     $bottom = User::factory()->create(['usertype' => 'student', 'stream_id' => $stream->id]);
 
-    makeGradeEntry($top,    $class, $term, 90);
+    makeGradeEntry($top, $class, $term, 90);
     makeGradeEntry($middle, $class, $term, 70);
     makeGradeEntry($bottom, $class, $term, 50);
 
@@ -61,22 +61,22 @@ test('student with highest average is ranked 1st', function () {
 });
 
 test('student with lowest average is ranked last', function () {
-    $admin   = User::factory()->create(['usertype' => 'admin']);
-    $grade   = Grade::factory()->create();
-    $stream  = Stream::factory()->create(['grade_id' => $grade->id]);
+    $admin = User::factory()->create(['usertype' => 'admin']);
+    $grade = Grade::factory()->create();
+    $stream = Stream::factory()->create(['grade_id' => $grade->id]);
     $subject = Subject::factory()->create();
-    $term    = Term::factory()->create(['is_active' => true]);
+    $term = Term::factory()->create(['is_active' => true]);
 
     $class = SchoolClass::factory()->create([
-        'grade_id'   => $grade->id,
-        'stream_id'  => $stream->id,
+        'grade_id' => $grade->id,
+        'stream_id' => $stream->id,
         'subject_id' => $subject->id,
     ]);
 
-    $top    = User::factory()->create(['usertype' => 'student', 'stream_id' => $stream->id]);
+    $top = User::factory()->create(['usertype' => 'student', 'stream_id' => $stream->id]);
     $bottom = User::factory()->create(['usertype' => 'student', 'stream_id' => $stream->id]);
 
-    makeGradeEntry($top,    $class, $term, 80);
+    makeGradeEntry($top, $class, $term, 80);
     makeGradeEntry($bottom, $class, $term, 40);
 
     $response = $this->actingAs($admin)
@@ -88,15 +88,15 @@ test('student with lowest average is ranked last', function () {
 });
 
 test('students with equal averages share the same rank', function () {
-    $admin   = User::factory()->create(['usertype' => 'admin']);
-    $grade   = Grade::factory()->create();
-    $stream  = Stream::factory()->create(['grade_id' => $grade->id]);
+    $admin = User::factory()->create(['usertype' => 'admin']);
+    $grade = Grade::factory()->create();
+    $stream = Stream::factory()->create(['grade_id' => $grade->id]);
     $subject = Subject::factory()->create();
-    $term    = Term::factory()->create(['is_active' => true]);
+    $term = Term::factory()->create(['is_active' => true]);
 
     $class = SchoolClass::factory()->create([
-        'grade_id'   => $grade->id,
-        'stream_id'  => $stream->id,
+        'grade_id' => $grade->id,
+        'stream_id' => $stream->id,
         'subject_id' => $subject->id,
     ]);
 
@@ -116,7 +116,7 @@ test('students with equal averages share the same rank', function () {
 });
 
 test('student with no stream shows N/A for position', function () {
-    $admin   = User::factory()->create(['usertype' => 'admin']);
+    $admin = User::factory()->create(['usertype' => 'admin']);
     $student = User::factory()->create(['usertype' => 'student', 'stream_id' => null]);
 
     $response = $this->actingAs($admin)
@@ -127,16 +127,16 @@ test('student with no stream shows N/A for position', function () {
 });
 
 test('rank filters correctly by term', function () {
-    $admin    = User::factory()->create(['usertype' => 'admin']);
-    $grade    = Grade::factory()->create();
-    $stream   = Stream::factory()->create(['grade_id' => $grade->id]);
-    $subject  = Subject::factory()->create();
-    $term1    = Term::factory()->create(['is_active' => false]);
-    $term2    = Term::factory()->create(['is_active' => true]);
+    $admin = User::factory()->create(['usertype' => 'admin']);
+    $grade = Grade::factory()->create();
+    $stream = Stream::factory()->create(['grade_id' => $grade->id]);
+    $subject = Subject::factory()->create();
+    $term1 = Term::factory()->create(['is_active' => false]);
+    $term2 = Term::factory()->create(['is_active' => true]);
 
     $class = SchoolClass::factory()->create([
-        'grade_id'   => $grade->id,
-        'stream_id'  => $stream->id,
+        'grade_id' => $grade->id,
+        'stream_id' => $stream->id,
         'subject_id' => $subject->id,
     ]);
 

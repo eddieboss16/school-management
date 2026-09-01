@@ -3,14 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\User;
-use App\Models\StudentGrade;
 use App\Models\Attendance;
 use App\Models\SchoolClass;
+use App\Models\StudentGrade;
 use App\Models\Term;
+use App\Models\User;
 use App\Support\StreamRank;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ReportCardController extends Controller
@@ -19,11 +19,11 @@ class ReportCardController extends Controller
 
     public function studentReportCard(Request $request)
     {
-        $student  = $this->loadStudent(auth()->id());
-        $terms    = Term::orderBy('start_date', 'desc')->get();
-        $termId   = $request->term_id ?? Term::activeTerm()?->id;
-        $term     = $termId ? $terms->firstWhere('id', $termId) : null;
-        $data     = $this->buildReportData($student, $termId);
+        $student = $this->loadStudent(auth()->id());
+        $terms = Term::orderBy('start_date', 'desc')->get();
+        $termId = $request->term_id ?? Term::activeTerm()?->id;
+        $term = $termId ? $terms->firstWhere('id', $termId) : null;
+        $data = $this->buildReportData($student, $termId);
 
         return view('reports.report-card', array_merge($data, compact('terms', 'termId', 'term')));
     }
@@ -31,6 +31,7 @@ class ReportCardController extends Controller
     public function studentDownloadPdf(Request $request)
     {
         $termId = $request->term_id ?? Term::activeTerm()?->id;
+
         return $this->downloadPdf(auth()->id(), $termId);
     }
 
@@ -50,11 +51,11 @@ class ReportCardController extends Controller
 
     public function generate(Request $request, $studentId)
     {
-        $student  = $this->loadStudent($studentId);
-        $terms    = Term::orderBy('start_date', 'desc')->get();
-        $termId   = $request->term_id ?? Term::activeTerm()?->id;
-        $term     = $termId ? $terms->firstWhere('id', $termId) : null;
-        $data     = $this->buildReportData($student, $termId);
+        $student = $this->loadStudent($studentId);
+        $terms = Term::orderBy('start_date', 'desc')->get();
+        $termId = $request->term_id ?? Term::activeTerm()?->id;
+        $term = $termId ? $terms->firstWhere('id', $termId) : null;
+        $data = $this->buildReportData($student, $termId);
 
         return view('reports.report-card', array_merge($data, compact('terms', 'termId', 'term')));
     }
@@ -66,15 +67,15 @@ class ReportCardController extends Controller
         }
 
         $student = $this->loadStudent($studentId);
-        $terms   = Term::orderBy('start_date', 'desc')->get();
-        $term    = $termId ? $terms->firstWhere('id', $termId) : null;
-        $data    = $this->buildReportData($student, $termId);
+        $terms = Term::orderBy('start_date', 'desc')->get();
+        $term = $termId ? $terms->firstWhere('id', $termId) : null;
+        $data = $this->buildReportData($student, $termId);
 
         $pdf = Pdf::loadView('reports.report-card-pdf', array_merge($data, compact('term')))
             ->setPaper('a4', 'portrait');
 
-        $suffix   = $term ? '-' . str_replace(' ', '-', strtolower($term->name)) : '';
-        $filename = 'report-card-' . str_replace(' ', '-', strtolower($student->name)) . $suffix . '.pdf';
+        $suffix = $term ? '-'.str_replace(' ', '-', strtolower($term->name)) : '';
+        $filename = 'report-card-'.str_replace(' ', '-', strtolower($student->name)).$suffix.'.pdf';
 
         return $pdf->download($filename);
     }
@@ -90,7 +91,7 @@ class ReportCardController extends Controller
             ->orderBy('date', 'desc')
             ->get();
 
-        $filename = 'attendance-' . str_replace(' ', '-', strtolower($student->name)) . '.csv';
+        $filename = 'attendance-'.str_replace(' ', '-', strtolower($student->name)).'.csv';
 
         $response = new StreamedResponse(function () use ($records, $student) {
             $handle = fopen('php://output', 'w');
@@ -113,7 +114,7 @@ class ReportCardController extends Controller
         });
 
         $response->headers->set('Content-Type', 'text/csv');
-        $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
+        $response->headers->set('Content-Disposition', 'attachment; filename="'.$filename.'"');
 
         return $response;
     }
@@ -139,14 +140,14 @@ class ReportCardController extends Controller
         $grades = $gradesQuery->get()->groupBy('class_id');
 
         $subjectAverages = [];
-        $overallTotal    = 0;
-        $subjectCount    = 0;
+        $overallTotal = 0;
+        $subjectCount = 0;
 
         foreach ($grades as $classId => $classGrades) {
             $average = round($classGrades->avg('percentage'), 2);
             $subjectAverages[$classId] = [
-                'subject'     => $classGrades->first()->class->subject->name,
-                'average'     => $average,
+                'subject' => $classGrades->first()->class->subject->name,
+                'average' => $average,
                 'assessments' => $classGrades,
             ];
             $overallTotal += $average;
@@ -160,10 +161,10 @@ class ReportCardController extends Controller
             $attendanceQuery->where('term_id', $termId);
         }
 
-        $totalAttendance     = (clone $attendanceQuery)->count();
-        $presentCount        = (clone $attendanceQuery)->where('status', 'present')->count();
-        $absentCount         = (clone $attendanceQuery)->where('status', 'absent')->count();
-        $lateCount           = (clone $attendanceQuery)->where('status', 'late')->count();
+        $totalAttendance = (clone $attendanceQuery)->count();
+        $presentCount = (clone $attendanceQuery)->where('status', 'present')->count();
+        $absentCount = (clone $attendanceQuery)->where('status', 'absent')->count();
+        $lateCount = (clone $attendanceQuery)->where('status', 'late')->count();
         $attendancePercentage = $totalAttendance > 0
             ? round(($presentCount / $totalAttendance) * 100, 1)
             : 0;
@@ -183,5 +184,4 @@ class ReportCardController extends Controller
             'streamSize'
         );
     }
-
 }

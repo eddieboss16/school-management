@@ -9,8 +9,9 @@ class GradeFactory extends Factory
     public function definition(): array
     {
         static $order = 1;
+
         return [
-            'name'  => 'Grade ' . $order,
+            'name' => 'Grade '.$order,
             'level' => 'primary',
             'order' => $order++,
         ];

@@ -8,13 +8,13 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasColumn('users', 'deleted_at')) {
+        if (! Schema::hasColumn('users', 'deleted_at')) {
             Schema::table('users', function (Blueprint $table) {
                 $table->softDeletes();
             });
         }
 
-        if (!Schema::hasColumn('student_grades', 'deleted_at')) {
+        if (! Schema::hasColumn('student_grades', 'deleted_at')) {
             Schema::table('student_grades', function (Blueprint $table) {
                 $table->softDeletes();
             });
@@ -23,7 +23,7 @@ return new class extends Migration
         // The attendance table was originally created as 'attendance' (singular).
         // Support both names so this migration runs cleanly on both fresh and existing DBs.
         $attendanceTable = Schema::hasTable('attendances') ? 'attendances' : 'attendance';
-        if (!Schema::hasColumn($attendanceTable, 'deleted_at')) {
+        if (! Schema::hasColumn($attendanceTable, 'deleted_at')) {
             Schema::table($attendanceTable, function (Blueprint $table) {
                 $table->softDeletes();
             });

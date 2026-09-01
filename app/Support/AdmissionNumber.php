@@ -64,7 +64,7 @@ class AdmissionNumber
     /** STD2026001, STD20261000 — padded to at least three digits. */
     public static function format(int $year, int $number): string
     {
-        return self::PREFIX . $year . str_pad((string) $number, self::PAD, '0', STR_PAD_LEFT);
+        return self::PREFIX.$year.str_pad((string) $number, self::PAD, '0', STR_PAD_LEFT);
     }
 
     /**
@@ -74,14 +74,14 @@ class AdmissionNumber
      */
     public static function highestIssued(int $year): int
     {
-        $prefix  = self::PREFIX . $year;
+        $prefix = self::PREFIX.$year;
         $highest = 0;
 
         // Queried through the query builder rather than the model: a
         // soft-deleted student still holds their number, because the unique
         // index does not care that deleted_at is set.
         $numbers = DB::table('users')
-            ->where('admission_number', 'like', $prefix . '%')
+            ->where('admission_number', 'like', $prefix.'%')
             ->pluck('admission_number');
 
         foreach ($numbers as $number) {
@@ -105,10 +105,10 @@ class AdmissionNumber
         // once, and both compute the same starting value, so losing this race
         // is harmless.
         DB::table('admission_sequences')->insertOrIgnore([
-            'year'        => $year,
+            'year' => $year,
             'next_number' => self::highestIssued($year) + 1,
-            'created_at'  => now(),
-            'updated_at'  => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
     }
 

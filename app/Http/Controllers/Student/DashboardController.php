@@ -3,22 +3,23 @@
 namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Attendance;
-use App\Models\StudentGrade;
-use App\Models\FeeStructure;
 use App\Models\FeePayment;
+use App\Models\FeeStructure;
+use App\Models\StudentGrade;
 use App\Models\Term;
+use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
-    public function index() {
+    public function index()
+    {
         $student = auth()->user();
 
         // student's enrolled classes
         $classes = $student->enrolledClasses()
-        ->with(['grade', 'stream', 'subject', 'teacher'])
-        ->get();
+            ->with(['grade', 'stream', 'subject', 'teacher'])
+            ->get();
 
         $totalClasses = $classes->count();
 
@@ -33,7 +34,8 @@ class DashboardController extends Controller
         return view('dashboard', compact('student', 'classes', 'totalClasses', 'attendancePercentage', 'presentCount', 'absentCount', 'lateCount'));
     }
 
-    public function attendance() {
+    public function attendance()
+    {
         $student = auth()->user();
 
         // Get all attendance records for student
@@ -45,7 +47,8 @@ class DashboardController extends Controller
         return view('student.attendance', compact('student', 'attendanceRecords'));
     }
 
-    public function fees(Request $request) {
+    public function fees(Request $request)
+    {
         $student = auth()->user();
         $terms = Term::orderBy('start_date', 'desc')->get();
         $activeTerm = Term::activeTerm();
@@ -53,7 +56,7 @@ class DashboardController extends Controller
 
         $fees = $selectedTermId ? FeeStructure::forStudent($student, $selectedTermId) : collect();
         $payments = FeePayment::where('student_id', $student->id)
-            ->when($selectedTermId, fn($q) => $q->where('term_id', $selectedTermId))
+            ->when($selectedTermId, fn ($q) => $q->where('term_id', $selectedTermId))
             ->with('term')
             ->orderBy('payment_date', 'desc')
             ->get();
@@ -65,15 +68,16 @@ class DashboardController extends Controller
         return view('student.fees', compact('terms', 'selectedTermId', 'fees', 'payments', 'expected', 'paid', 'balance'));
     }
 
-    public function grades() {
+    public function grades()
+    {
         $student = auth()->user();
 
         // Get all grades for the student grouped by class
         $grades = StudentGrade::where('student_id', $student->id)
-        ->with(['class.subject', 'class.teacher'])
-        ->orderBy('assessment_date', 'desc')
-        ->get()
-        ->groupBy('class_id');
+            ->with(['class.subject', 'class.teacher'])
+            ->orderBy('assessment_date', 'desc')
+            ->get()
+            ->groupBy('class_id');
 
         return view('student.grades', compact('student', 'grades'));
     }

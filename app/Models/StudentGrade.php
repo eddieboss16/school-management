@@ -31,24 +31,29 @@ class StudentGrade extends Model
     ];
 
     // Relationships
-    public function class() {
+    public function class()
+    {
         return $this->belongsTo(SchoolClass::class, 'class_id');
     }
 
-    public function student() {
+    public function student()
+    {
         return $this->belongsTo(User::class, 'student_id');
     }
 
-    public function enteredBy() {
+    public function enteredBy()
+    {
         return $this->belongsTo(User::class, 'entered_by');
     }
 
-    public function term() {
+    public function term()
+    {
         return $this->belongsTo(Term::class);
     }
 
     // Helper method to get percentage
-    public function getPercentageAttribute() {
-        return $this->max_score > 0 ? round(($this->score / $this->max_score) * 100,2) : 0;
+    public function getPercentageAttribute()
+    {
+        return $this->max_score > 0 ? round(($this->score / $this->max_score) * 100, 2) : 0;
     }
 }

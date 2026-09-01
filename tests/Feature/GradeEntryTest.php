@@ -14,15 +14,15 @@ uses(RefreshDatabase::class);
 
 test('teacher can enter grades for their own class', function () {
     $teacher = User::factory()->create(['usertype' => 'teacher']);
-    $grade   = Grade::factory()->create();
-    $stream  = Stream::factory()->create(['grade_id' => $grade->id]);
+    $grade = Grade::factory()->create();
+    $stream = Stream::factory()->create(['grade_id' => $grade->id]);
     $subject = Subject::factory()->create();
-    $term    = Term::factory()->create(['is_active' => true]);
+    $term = Term::factory()->create(['is_active' => true]);
 
     $class = SchoolClass::factory()->create([
         'teacher_id' => $teacher->id,
-        'grade_id'   => $grade->id,
-        'stream_id'  => $stream->id,
+        'grade_id' => $grade->id,
+        'stream_id' => $stream->id,
         'subject_id' => $subject->id,
     ]);
 
@@ -33,15 +33,15 @@ test('teacher can enter grades for their own class', function () {
         ->post(route('teacher.grades.store', $class->id), [
             'assessment_type' => 'Midterm Exam',
             'assessment_date' => now()->format('Y-m-d'),
-            'max_score'       => 100,
-            'grades'          => [$student->id => ['score' => 78, 'remarks' => '']],
+            'max_score' => 100,
+            'grades' => [$student->id => ['score' => 78, 'remarks' => '']],
         ])
         ->assertRedirect(route('teacher.grades.view', $class->id));
 
     $this->assertDatabaseHas('student_grades', [
-        'class_id'        => $class->id,
-        'student_id'      => $student->id,
-        'score'           => 78,
+        'class_id' => $class->id,
+        'student_id' => $student->id,
+        'score' => 78,
         'assessment_type' => 'Midterm Exam',
     ]);
 });
@@ -49,14 +49,14 @@ test('teacher can enter grades for their own class', function () {
 test('teacher cannot enter grades for another teacher\'s class', function () {
     $teacherA = User::factory()->create(['usertype' => 'teacher']);
     $teacherB = User::factory()->create(['usertype' => 'teacher']);
-    $grade    = Grade::factory()->create();
-    $stream   = Stream::factory()->create(['grade_id' => $grade->id]);
-    $subject  = Subject::factory()->create();
+    $grade = Grade::factory()->create();
+    $stream = Stream::factory()->create(['grade_id' => $grade->id]);
+    $subject = Subject::factory()->create();
 
     $class = SchoolClass::factory()->create([
         'teacher_id' => $teacherB->id,
-        'grade_id'   => $grade->id,
-        'stream_id'  => $stream->id,
+        'grade_id' => $grade->id,
+        'stream_id' => $stream->id,
         'subject_id' => $subject->id,
     ]);
 
@@ -67,8 +67,8 @@ test('teacher cannot enter grades for another teacher\'s class', function () {
         ->post(route('teacher.grades.store', $class->id), [
             'assessment_type' => 'Midterm Exam',
             'assessment_date' => now()->format('Y-m-d'),
-            'max_score'       => 100,
-            'grades'          => [$student->id => ['score' => 90]],
+            'max_score' => 100,
+            'grades' => [$student->id => ['score' => 90]],
         ])
         ->assertStatus(404);
 });

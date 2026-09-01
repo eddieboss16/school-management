@@ -27,7 +27,7 @@ function admissionAdmin(): User
 function studentHolding(string $admissionNumber, bool $trashed = false): User
 {
     $student = User::factory()->create([
-        'usertype'         => 'student',
+        'usertype' => 'student',
         'admission_number' => $admissionNumber,
     ]);
 
@@ -43,9 +43,9 @@ function createStudentAndGetNumber(User $admin, string $email): string
 {
     test()->actingAs($admin)
         ->post(route('admin.students.store'), [
-            'name'                  => 'New Student',
-            'email'                 => $email,
-            'password'              => 'Password@123',
+            'name' => 'New Student',
+            'email' => $email,
+            'password' => 'Password@123',
             'password_confirmation' => 'Password@123',
         ])
         ->assertRedirect(route('admin.students'));
@@ -63,7 +63,7 @@ test('the first student of the year gets sequence 001', function () {
 });
 
 test('sequence increments for each subsequent student', function () {
-    $year  = date('Y');
+    $year = date('Y');
     $admin = admissionAdmin();
 
     expect(createStudentAndGetNumber($admin, 'a@example.com'))->toBe("STD{$year}001")
@@ -76,10 +76,10 @@ test('an explicitly supplied admission number is respected', function () {
 
     test()->actingAs($admin)
         ->post(route('admin.students.store'), [
-            'name'                  => 'Manual Student',
-            'email'                 => 'manual@example.com',
-            'admission_number'      => 'CUSTOM-001',
-            'password'              => 'Password@123',
+            'name' => 'Manual Student',
+            'email' => 'manual@example.com',
+            'admission_number' => 'CUSTOM-001',
+            'password' => 'Password@123',
             'password_confirmation' => 'Password@123',
         ])
         ->assertRedirect(route('admin.students'));
@@ -118,7 +118,7 @@ test('a four digit high-water mark is read as a number, not as its last three ch
 });
 
 test('the sequence keeps climbing across many students beyond the boundary', function () {
-    $year  = date('Y');
+    $year = date('Y');
     $admin = admissionAdmin();
     studentHolding("STD{$year}998");
 
@@ -177,7 +177,7 @@ test('a previous year high-water mark does not affect this year', function () {
 test('two generations with no student written in between return different numbers', function () {
     $year = date('Y');
 
-    $first  = AdmissionNumber::next();
+    $first = AdmissionNumber::next();
     $second = AdmissionNumber::next();
 
     // Nothing was inserted between the two calls; the old generator would have
@@ -245,7 +245,7 @@ test('a number assigned by hand after seeding is stepped over, not reissued', fu
 
 test('no admission number is ever issued twice', function () {
     $admin = admissionAdmin();
-    studentHolding('STD' . date('Y') . '997');
+    studentHolding('STD'.date('Y').'997');
 
     $issued = [];
     foreach (range(1, 8) as $i) {

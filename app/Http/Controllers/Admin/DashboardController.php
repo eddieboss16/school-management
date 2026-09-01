@@ -3,16 +3,17 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\User;
+use App\Models\ActivityLog;
+use App\Models\SchoolClass;
 use App\Models\Stream;
 use App\Models\Subject;
-use App\Models\SchoolClass;
-use App\Models\ActivityLog;
+use App\Models\User;
+use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
-    public function activityLog() {
+    public function activityLog()
+    {
         $logs = ActivityLog::with('user')
             ->orderBy('created_at', 'desc')
             ->paginate(30);
@@ -20,7 +21,8 @@ class DashboardController extends Controller
         return view('admin.activity-log', compact('logs'));
     }
 
-    public function index() {
+    public function index()
+    {
         $totalStudents = User::where('usertype', 'student')->count();
         $totalTeachers = User::where('usertype', 'teacher')->count();
         $totalUsers = User::count();

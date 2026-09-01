@@ -16,12 +16,14 @@ class Grade extends Model
     ];
 
     // Relationship: Grade has many streams
-    public function streams() {
+    public function streams()
+    {
         return $this->hasMany(Stream::class);
     }
 
     // Relationship: Grade has many classes
-    public function classes() {
+    public function classes()
+    {
         return $this->hasMany(SchoolClass::class);
     }
 }

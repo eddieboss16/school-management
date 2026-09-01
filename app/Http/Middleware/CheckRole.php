@@ -12,14 +12,14 @@ class CheckRole
     public function handle(Request $request, Closure $next, string $role): Response
     {
         // check if user is logged in
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect('/login');
         }
 
         // Check if user has the required role
         if (Auth::user()->usertype !== $role) {
             // Redirect based on their actual role
-            return match(Auth::user()->usertype) {
+            return match (Auth::user()->usertype) {
                 'admin' => redirect('/admin/dashboard')->with('error', 'Access denied.'),
                 'teacher' => redirect('/teacher/dashboard')->with('error', 'Access denied.'),
                 'student' => redirect('/dashboard')->with('error', 'Access denied.'),
@@ -27,6 +27,7 @@ class CheckRole
                 default => redirect('/login'),
             };
         }
+
         return $next($request);
     }
 }

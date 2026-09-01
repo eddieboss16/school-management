@@ -2,13 +2,13 @@
 
 namespace App\Notifications;
 
+use App\Models\SchoolClass;
+use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use App\Models\User;
-use App\Models\SchoolClass;
-use Carbon\Carbon;
 
 class StudentAbsentNotification extends Notification implements ShouldQueue
 {
@@ -31,9 +31,9 @@ class StudentAbsentNotification extends Notification implements ShouldQueue
         $this->class->loadMissing(['subject', 'grade', 'stream']);
 
         $statusLabel = ucfirst($this->status);
-        $subject     = $this->class->subject->name;
-        $dateStr     = $this->date->format('l, F j, Y');
-        $className   = $this->class->grade->name . ' ' . $this->class->stream->name;
+        $subject = $this->class->subject->name;
+        $dateStr = $this->date->format('l, F j, Y');
+        $className = $this->class->grade->name.' '.$this->class->stream->name;
 
         return (new MailMessage)
             ->subject("{$this->student->name} was marked {$statusLabel} – {$dateStr}")
@@ -42,7 +42,7 @@ class StudentAbsentNotification extends Notification implements ShouldQueue
             ->line("**Subject:** {$subject}")
             ->line("**Class:** {$className}")
             ->line("**Date:** {$dateStr}")
-            ->line("If you have any questions, please contact the school.")
+            ->line('If you have any questions, please contact the school.')
             ->salutation('Regards, School Administration');
     }
 }

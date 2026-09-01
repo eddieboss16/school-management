@@ -24,15 +24,15 @@ class ActivityLog extends Model
         return $this->belongsTo(User::class);
     }
 
-    public static function record(string $action, string $modelType, int|null $modelId, string $description, array $changes = []): void
+    public static function record(string $action, string $modelType, ?int $modelId, string $description, array $changes = []): void
     {
         static::create([
-            'user_id'    => auth()->id(),
-            'action'     => $action,
+            'user_id' => auth()->id(),
+            'action' => $action,
             'model_type' => $modelType,
-            'model_id'   => $modelId,
+            'model_id' => $modelId,
             'description' => $description,
-            'changes'    => empty($changes) ? null : $changes,
+            'changes' => empty($changes) ? null : $changes,
         ]);
     }
 }

@@ -13,21 +13,21 @@ class StudentGradeFactory extends Factory
 
     public function definition(): array
     {
-        $score    = fake()->numberBetween(0, 100);
+        $score = fake()->numberBetween(0, 100);
         $maxScore = 100;
 
         return [
-            'class_id'        => SchoolClass::factory(),
-            'student_id'      => User::factory()->create(['usertype' => 'student'])->id,
-            'term_id'         => Term::factory(),
+            'class_id' => SchoolClass::factory(),
+            'student_id' => User::factory()->create(['usertype' => 'student'])->id,
+            'term_id' => Term::factory(),
             'assessment_type' => fake()->randomElement(['Midterm Exam', 'End Term Exam', 'CAT 1', 'CAT 2']),
-            'score'           => $score,
-            'max_score'       => $maxScore,
+            'score' => $score,
+            'max_score' => $maxScore,
             'assessment_date' => fake()->dateTimeBetween('-3 months', 'now'),
-            'remarks'         => null,
+            'remarks' => null,
             // student_grades.entered_by is NOT NULL. Left lazy so it is only
             // resolved when the caller does not supply a teacher of their own.
-            'entered_by'      => User::factory()->state(['usertype' => 'teacher']),
+            'entered_by' => User::factory()->state(['usertype' => 'teacher']),
         ];
     }
 }

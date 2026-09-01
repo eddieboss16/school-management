@@ -32,50 +32,50 @@ function isolationParentWithChild(string $admissionNumber): array
 {
     $parent = User::factory()->create(['usertype' => 'parent']);
 
-    $grade   = Grade::factory()->create();
-    $stream  = Stream::factory()->create(['grade_id' => $grade->id]);
+    $grade = Grade::factory()->create();
+    $stream = Stream::factory()->create(['grade_id' => $grade->id]);
     $subject = Subject::factory()->create();
     $teacher = User::factory()->create(['usertype' => 'teacher']);
-    $term    = Term::factory()->create();
+    $term = Term::factory()->create();
 
     $child = User::factory()->create([
-        'usertype'         => 'student',
-        'parent_id'        => $parent->id,
-        'stream_id'        => $stream->id,
+        'usertype' => 'student',
+        'parent_id' => $parent->id,
+        'stream_id' => $stream->id,
         'admission_number' => $admissionNumber,
     ]);
 
     $class = SchoolClass::factory()->create([
         'teacher_id' => $teacher->id,
-        'grade_id'   => $grade->id,
-        'stream_id'  => $stream->id,
+        'grade_id' => $grade->id,
+        'stream_id' => $stream->id,
         'subject_id' => $subject->id,
     ]);
     $class->students()->attach($child->id);
 
     // entered_by is required by the schema even though the factory defaults it to null.
     StudentGrade::factory()->create([
-        'class_id'   => $class->id,
+        'class_id' => $class->id,
         'student_id' => $child->id,
-        'term_id'    => $term->id,
-        'score'      => 80,
-        'max_score'  => 100,
+        'term_id' => $term->id,
+        'score' => 80,
+        'max_score' => 100,
         'entered_by' => $teacher->id,
     ]);
 
     Attendance::create([
-        'class_id'   => $class->id,
+        'class_id' => $class->id,
         'student_id' => $child->id,
-        'term_id'    => $term->id,
-        'date'       => now(),
-        'status'     => 'present',
-        'marked_by'  => $teacher->id,
+        'term_id' => $term->id,
+        'date' => now(),
+        'status' => 'present',
+        'marked_by' => $teacher->id,
     ]);
 
     FeePayment::factory()->create([
         'student_id' => $child->id,
-        'term_id'    => $term->id,
-        'amount'     => 1500,
+        'term_id' => $term->id,
+        'amount' => 1500,
     ]);
 
     return [$parent, $child];
@@ -83,10 +83,10 @@ function isolationParentWithChild(string $admissionNumber): array
 
 /** Every parent route that accepts a child id. */
 dataset('parent child routes', [
-    'grades'      => ['parent.child.grades'],
-    'attendance'  => ['parent.child.attendance'],
+    'grades' => ['parent.child.grades'],
+    'attendance' => ['parent.child.attendance'],
     'report card' => ['parent.child.report_card'],
-    'fees'        => ['parent.child.fees'],
+    'fees' => ['parent.child.fees'],
 ]);
 
 // ── Parent A cannot reach Parent B's child ───────────────────────────────────
@@ -125,7 +125,7 @@ test('parent cannot reach another parent child by adding a term filter', functio
     $term = Term::factory()->create(['is_active' => true]);
 
     $this->actingAs($parentA)
-        ->get(route('parent.child.report_card', $childB->id) . '?term_id=' . $term->id)
+        ->get(route('parent.child.report_card', $childB->id).'?term_id='.$term->id)
         ->assertStatus(404);
 });
 
@@ -196,10 +196,10 @@ test('registration still refuses a student who already has a parent and leaves t
     [$parentB, $childB] = isolationParentWithChild('ADM-ISO-B9');
 
     $this->post(route('parent.register.store'), [
-        'name'                  => 'Attacker',
-        'email'                 => 'attacker-isolation@example.com',
-        'admission_number'      => 'ADM-ISO-B9',
-        'password'              => 'Password1!',
+        'name' => 'Attacker',
+        'email' => 'attacker-isolation@example.com',
+        'admission_number' => 'ADM-ISO-B9',
+        'password' => 'Password1!',
         'password_confirmation' => 'Password1!',
     ])->assertSessionHasErrors('admission_number');
 
@@ -212,16 +212,16 @@ test('a newly registered parent cannot see children they did not claim', functio
     [, $childB] = isolationParentWithChild('ADM-ISO-B10');
 
     $ownStudent = User::factory()->create([
-        'usertype'         => 'student',
+        'usertype' => 'student',
         'admission_number' => 'ADM-ISO-C10',
-        'parent_id'        => null,
+        'parent_id' => null,
     ]);
 
     $this->post(route('parent.register.store'), [
-        'name'                  => 'New Parent',
-        'email'                 => 'new-parent-isolation@example.com',
-        'admission_number'      => 'ADM-ISO-C10',
-        'password'              => 'Password1!',
+        'name' => 'New Parent',
+        'email' => 'new-parent-isolation@example.com',
+        'admission_number' => 'ADM-ISO-C10',
+        'password' => 'Password1!',
         'password_confirmation' => 'Password1!',
     ])->assertRedirect(route('parent.dashboard'));
 

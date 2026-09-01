@@ -28,29 +28,35 @@ class User extends Authenticatable
         'parent_id',
     ];
 
-    public function parent() {
+    public function parent()
+    {
         return $this->belongsTo(User::class, 'parent_id');
     }
 
-    public function children() {
+    public function children()
+    {
         return $this->hasMany(User::class, 'parent_id');
     }
 
-    public function stream() {
+    public function stream()
+    {
         return $this->belongsTo(Stream::class);
     }
 
     // Relationship: User enrolled classes (for students)
-    public function enrolledClasses() {
+    public function enrolledClasses()
+    {
         return $this->belongsToMany(SchoolClass::class, 'enrollments', 'student_id', 'class_id');
     }
 
     // Relationship: User teaching classes (for teachers)
-    public function teachingClasses() {
+    public function teachingClasses()
+    {
         return $this->hasMany(SchoolClass::class, 'teacher_id');
     }
 
-    public function feePayments() {
+    public function feePayments()
+    {
         return $this->hasMany(FeePayment::class, 'student_id');
     }
 

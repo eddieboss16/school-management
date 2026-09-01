@@ -3,36 +3,38 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\SchoolClass;
 use App\Models\Attendance;
+use App\Models\SchoolClass;
 use App\Models\Term;
 use App\Models\User;
 use App\Notifications\StudentAbsentNotification;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class AttendanceController extends Controller
 {
     // Schow attendance marking for specific class
-    public function mark($classId) {
+    public function mark($classId)
+    {
         $class = SchoolClass::with(['grade', 'stream', 'subject', 'students'])
-        ->findOrFail($classId);
+            ->findOrFail($classId);
 
         $this->authorize('view', $class);
-        
+
         $today = Carbon::today();
 
         // Check if attendance already marked for today
         $existingAttendance = Attendance::where('class_id', $classId)
-        ->where('date', $today)
-        ->pluck('student_id')
-        ->toArray();
+            ->where('date', $today)
+            ->pluck('student_id')
+            ->toArray();
 
         return view('teacher.attendance-mark', compact('class', 'today', 'existingAttendance'));
     }
 
     // Store attendance records
-    public function store(Request $request, $classId) {
+    public function store(Request $request, $classId)
+    {
         $teacher = auth()->user();
 
         $class = SchoolClass::findOrFail($classId);
@@ -53,7 +55,7 @@ class AttendanceController extends Controller
                 $notEnrolled = array_diff(array_keys($value), $enrolledIds);
 
                 if (! empty($notEnrolled)) {
-                    $fail('These students are not enrolled in this class: ' . implode(', ', $notEnrolled) . '.');
+                    $fail('These students are not enrolled in this class: '.implode(', ', $notEnrolled).'.');
                 }
             }],
             'attendance.*' => ['in:present,absent,late,excused'],
@@ -63,8 +65,8 @@ class AttendanceController extends Controller
 
         // Delete existing attendance for this date (if re-marking)
         Attendance::where('class_id', $classId)
-        ->where('date', $date)
-        ->delete();
+            ->where('date', $date)
+            ->delete();
 
         $activeTerm = Term::activeTerm();
 
@@ -77,13 +79,13 @@ class AttendanceController extends Controller
         // Create new attendance records
         foreach ($request->attendance as $studentId => $status) {
             Attendance::create([
-                'class_id'   => $classId,
+                'class_id' => $classId,
                 'student_id' => $studentId,
-                'term_id'    => $activeTerm?->id,
-                'date'       => $date,
-                'status'     => $status,
-                'notes'      => $request->notes[$studentId] ?? null,
-                'marked_by'  => $teacher->id,
+                'term_id' => $activeTerm?->id,
+                'date' => $date,
+                'status' => $status,
+                'notes' => $request->notes[$studentId] ?? null,
+                'marked_by' => $teacher->id,
             ]);
 
             // Notify parent if child is absent or late
@@ -98,22 +100,23 @@ class AttendanceController extends Controller
         }
 
         return redirect()->route('teacher.attendance.history', $classId)
-        ->with('success', 'Attendance marked successfully for ' . $date->format('M d, Y'));
+            ->with('success', 'Attendance marked successfully for '.$date->format('M d, Y'));
     }
 
     // View attendance history for a class
-    public function history($classId) {
+    public function history($classId)
+    {
         $class = SchoolClass::with(['grade', 'stream', 'subject'])
-        ->findOrFail($classId);
+            ->findOrFail($classId);
 
         $this->authorize('view', $class);
 
         // Get all attendance grouped by date
         $attendanceRecords = Attendance::where('class_id', $classId)
-        ->with('student')
-        ->orderBy('date', 'desc')
-        ->get()
-        ->groupBy('date');
+            ->with('student')
+            ->orderBy('date', 'desc')
+            ->get()
+            ->groupBy('date');
 
         return view('teacher.attendance-history', compact('class', 'attendanceRecords'));
     }

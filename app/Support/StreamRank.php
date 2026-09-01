@@ -57,18 +57,19 @@ class StreamRank
             $studentGrades = $allGrades->get($sid, collect());
             if ($studentGrades->isEmpty()) {
                 $averages[$sid] = 0.0;
+
                 continue;
             }
-            $byClass       = $studentGrades->groupBy('class_id');
-            $subjectAvgs   = $byClass->map(fn ($g) => $g->avg('percentage'));
+            $byClass = $studentGrades->groupBy('class_id');
+            $subjectAvgs = $byClass->map(fn ($g) => $g->avg('percentage'));
             $averages[$sid] = round($subjectAvgs->avg(), 2);
         }
 
         // Sort descending; ties share the same position (dense rank)
         arsort($averages);
         $position = 1;
-        $prev     = null;
-        $rank     = 1;
+        $prev = null;
+        $rank = 1;
         foreach ($averages as $sid => $avg) {
             if ($prev !== null && $avg < $prev) {
                 $rank = $position;

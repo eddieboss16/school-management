@@ -17,13 +17,13 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        if (!Schema::hasColumn('student_grades', 'term_id')) {
+        if (! Schema::hasColumn('student_grades', 'term_id')) {
             Schema::table('student_grades', function (Blueprint $table) {
                 $table->foreignId('term_id')->nullable()->constrained()->onDelete('set null');
             });
         }
 
-        if (!Schema::hasColumn('attendances', 'term_id')) {
+        if (! Schema::hasColumn('attendances', 'term_id')) {
             Schema::table('attendances', function (Blueprint $table) {
                 $table->foreignId('term_id')->nullable()->constrained()->onDelete('set null');
             });

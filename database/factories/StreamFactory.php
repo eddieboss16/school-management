@@ -11,7 +11,7 @@ class StreamFactory extends Factory
     {
         return [
             'grade_id' => Grade::factory(),
-            'name'     => fake()->randomElement(['A', 'B', 'C', 'D']),
+            'name' => fake()->randomElement(['A', 'B', 'C', 'D']),
             'capacity' => 40,
         ];
     }

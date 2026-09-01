@@ -3,14 +3,14 @@
 namespace App\Http\Controllers\Parent;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\User;
-use App\Models\StudentGrade;
 use App\Models\Attendance;
-use App\Models\FeeStructure;
 use App\Models\FeePayment;
+use App\Models\FeeStructure;
+use App\Models\StudentGrade;
 use App\Models\Term;
+use App\Models\User;
 use App\Support\StreamRank;
+use Illuminate\Http\Request;
 use Illuminate\Http\Request as HttpRequest;
 
 class DashboardController extends Controller
@@ -50,24 +50,26 @@ class DashboardController extends Controller
 
     public function reportCard(HttpRequest $request, $id)
     {
-        $child  = $this->authorizeChild($id);
-        $terms  = Term::orderBy('start_date', 'desc')->get();
+        $child = $this->authorizeChild($id);
+        $terms = Term::orderBy('start_date', 'desc')->get();
         $termId = $request->term_id ?? Term::activeTerm()?->id;
-        $term   = $termId ? $terms->firstWhere('id', $termId) : null;
+        $term = $termId ? $terms->firstWhere('id', $termId) : null;
 
         $gradesQuery = StudentGrade::where('student_id', $child->id)->with(['class.subject']);
-        if ($termId) $gradesQuery->where('term_id', $termId);
+        if ($termId) {
+            $gradesQuery->where('term_id', $termId);
+        }
         $grades = $gradesQuery->get()->groupBy('class_id');
 
         $subjectAverages = [];
-        $overallTotal    = 0;
-        $subjectCount    = 0;
+        $overallTotal = 0;
+        $subjectCount = 0;
 
         foreach ($grades as $classId => $classGrades) {
             $average = round($classGrades->avg('percentage'), 2);
             $subjectAverages[$classId] = [
-                'subject'     => $classGrades->first()->class->subject->name,
-                'average'     => $average,
+                'subject' => $classGrades->first()->class->subject->name,
+                'average' => $average,
                 'assessments' => $classGrades,
             ];
             $overallTotal += $average;
@@ -77,12 +79,14 @@ class DashboardController extends Controller
         $overallAverage = $subjectCount > 0 ? round($overallTotal / $subjectCount, 2) : 0;
 
         $attQ = Attendance::where('student_id', $child->id);
-        if ($termId) $attQ->where('term_id', $termId);
+        if ($termId) {
+            $attQ->where('term_id', $termId);
+        }
 
-        $totalAttendance     = (clone $attQ)->count();
-        $presentCount        = (clone $attQ)->where('status', 'present')->count();
-        $absentCount         = (clone $attQ)->where('status', 'absent')->count();
-        $lateCount           = (clone $attQ)->where('status', 'late')->count();
+        $totalAttendance = (clone $attQ)->count();
+        $presentCount = (clone $attQ)->where('status', 'present')->count();
+        $absentCount = (clone $attQ)->where('status', 'absent')->count();
+        $lateCount = (clone $attQ)->where('status', 'late')->count();
         $attendancePercentage = $totalAttendance > 0 ? round(($presentCount / $totalAttendance) * 100, 1) : 0;
 
         [$streamPosition, $streamSize] = StreamRank::forStudent($child, $termId);
@@ -104,7 +108,7 @@ class DashboardController extends Controller
 
         $fees = $selectedTermId ? FeeStructure::forStudent($child, $selectedTermId) : collect();
         $payments = FeePayment::where('student_id', $child->id)
-            ->when($selectedTermId, fn($q) => $q->where('term_id', $selectedTermId))
+            ->when($selectedTermId, fn ($q) => $q->where('term_id', $selectedTermId))
             ->with('term')
             ->orderBy('payment_date', 'desc')
             ->get();
@@ -131,5 +135,4 @@ class DashboardController extends Controller
 
         return $child;
     }
-
 }
