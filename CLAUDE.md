@@ -19,7 +19,8 @@ php artisan test tests/Feature/FeeBalanceTest.php # single file
 php artisan test --filter="teacher can enter grades for their own class"
 
 php artisan migrate && php artisan db:seed   # grades 1-9, streams A-C, subjects, admin@school.com / Admin@123
-./vendor/bin/pint       # formatter (laravel preset per .styleci.yml; no_unused_imports disabled)
+./vendor/bin/pint       # formatter (laravel preset per pint.json; no_unused_imports disabled)
+./vendor/bin/pint --test # check only, no rewrite — this is what CI runs
 npm run build
 ```
 
@@ -43,12 +44,32 @@ npm run build
 >
 > Same root cause as the `.env` trap below: once config is cached, `.env` and env vars stop being read at all.
 
-Tests run on in-memory SQLite (forced in `phpunit.xml`) regardless of the `.env` DB — **but only while config is not cached** (see the warning above). No CI is configured.
+Tests run on in-memory SQLite (forced in `phpunit.xml`) regardless of the `.env` DB — **but only while config is not cached** (see the warning above). CI runs the suite on every push — see [Continuous integration](#continuous-integration).
 
 Two traps around the dev database:
 
 - Local `.env` points at MySQL **`high_school_management`** — *not* `school_management`, which the repo name and this file previously implied. If `artisan migrate` reports "Nothing to migrate" against a database you can see is empty, you are looking at the wrong schema; `env('DB_DATABASE')` is the authority. (Laravel's dotenv is immutable, so a real OS env var of the same name silently wins over `.env` too.)
 - `database/database.sqlite` exists but is a **stale stub**: 3 of 21 migrations applied, no `enrollments`/`student_grades` tables, zero rows. It is neither what tests use nor a working dev database — do not point anything at it expecting it to work.
+
+## Continuous integration
+
+[.github/workflows/tests.yml](.github/workflows/tests.yml) runs on **every push and pull request to `master`**. Two independent jobs, both on `ubuntu-latest` with PHP 8.2 (the `composer.json` floor):
+
+| Job | Runs | Fails when |
+|---|---|---|
+| `tests` | `composer test` | any of the 251 tests fails |
+| `pint` | `./vendor/bin/pint --test` | any file deviates from `pint.json` |
+
+**This is now the enforcement mechanism for "tests pass".** Before this, nothing checked: it relied on someone remembering to run `composer test` before pushing. Formatting drift in particular used to surface later as unrelated diff noise in the next commit that happened to touch the file.
+
+Four things about it that are deliberate, and will break if changed casually:
+
+- **CI runs `composer test`, not `php artisan test`.** The composer script is the documented local entry point and it runs `config:clear` first. Inventing a separate CI invocation would create a second command that can drift from the documented one — and the `config:clear` is a safety guard (see the ⚠️ warning under [Commands](#commands)).
+- **No database service.** `phpunit.xml` pins the test DB to SQLite `:memory:`, so CI installs `pdo_sqlite` and needs no MySQL container. Do not add a CI-only DB config; if CI ever needs one, `phpunit.xml` is what changed and local runs changed with it.
+- **`npm ci && npm run build` is required, not cosmetic.** Feature tests render `layouts/app.blade.php`, which calls `@vite()`. `public/build` is gitignored, so without a build step every such test dies with `Vite manifest not found` — verified by hiding the directory locally and re-running `ProfileTest`. A green suite locally is not evidence CI can skip this; a running `npm run dev` leaves `public/hot`, which makes `@vite()` bypass the manifest entirely.
+- **`pint --test` is check-only.** It reports drift and exits non-zero; it never rewrites files in CI. Fix drift by running `./vendor/bin/pint` locally and committing the result.
+
+The two jobs are separate so a formatting failure and a test failure report independently rather than one masking the other.
 
 ## Config and route caching
 

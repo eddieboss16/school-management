@@ -1,0 +1,92 @@
+name: tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  tests:
+    name: Test suite
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          # composer.json requires ^8.2.
+          php-version: '8.2'
+          # pdo_sqlite + sqlite3: phpunit.xml pins the test database to sqlite
+          #   :memory:, so the suite never touches MySQL and CI needs no DB service.
+          # dom + mbstring: required by dompdf, which the report-card tests render.
+          # pdo_mysql: the application's real driver, not exercised by the suite.
+          extensions: mbstring, dom, xml, bcmath, curl, fileinfo, gd, zip, pdo_sqlite, sqlite3, pdo_mysql
+          coverage: none
+
+      - name: Create the environment file
+        run: cp .env.example .env
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Generate the application key
+        run: php artisan key:generate
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install JS dependencies
+        run: npm ci
+
+      # Required, not optional: the feature tests render layouts/app.blade.php,
+      # which calls @vite(). With no build manifest under public/build (it is
+      # gitignored) every one of those requests fails with "Vite manifest not
+      # found" — verified by hiding the directory and re-running ProfileTest.
+      - name: Build front-end assets
+        run: npm run build
+
+      # Deliberately `composer test` and not a hand-rolled `php artisan test`:
+      # the composer script is what CLAUDE.md documents for local runs, and it
+      # runs `config:clear` first. Calling artisan directly here would create a
+      # second invocation that can drift from the documented one.
+      - name: Run the test suite
+        run: composer test
+
+  pint:
+    name: Code style
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      # --test is check-only: it reports drift and exits non-zero, never rewrites.
+      - name: Check formatting
+        run: ./vendor/bin/pint --test
