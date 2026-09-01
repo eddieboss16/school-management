@@ -10,6 +10,7 @@ use Illuminate\Validation\Rules;
 use App\Models\User;
 use App\Models\Stream;
 use App\Models\ActivityLog;
+use App\Support\AdmissionNumber;
 
 class StudentController extends Controller
 {
@@ -48,24 +49,10 @@ class StudentController extends Controller
             ],
         ]);
 
-        // Auto-generate admission number if not provided
-        $admissionNumber = $request->admission_number;
-        if (empty($admissionNumber)) {
-            $year = date('Y');
-            $lastStudent = User::where('usertype', 'student')
-                ->where('admission_number', 'like', "STD{$year}%")
-                ->orderBy('admission_number', 'desc')
-                ->first();
-
-            if ($lastStudent) {
-                $lastNumber = intval(substr($lastStudent->admission_number, -3));
-                $newNumber = $lastNumber + 1;
-            } else {
-                $newNumber = 1;
-            }
-
-            $admissionNumber = "STD{$year}" . str_pad($newNumber, 3, '0', STR_PAD_LEFT);
-        }
+        // Auto-generate admission number if not provided. AdmissionNumber
+        // claims the next value from a locked per-year counter, so two
+        // simultaneous admissions cannot be handed the same number.
+        $admissionNumber = $request->admission_number ?: AdmissionNumber::next();
 
         $student = User::create([
             'name' => $request->name,
