@@ -10,6 +10,7 @@ use App\Models\Attendance;
 use App\Models\FeeStructure;
 use App\Models\FeePayment;
 use App\Models\Term;
+use App\Support\StreamRank;
 use Illuminate\Http\Request as HttpRequest;
 
 class DashboardController extends Controller
@@ -84,7 +85,7 @@ class DashboardController extends Controller
         $lateCount           = (clone $attQ)->where('status', 'late')->count();
         $attendancePercentage = $totalAttendance > 0 ? round(($presentCount / $totalAttendance) * 100, 1) : 0;
 
-        [$streamPosition, $streamSize] = $this->computeStreamRank($child, $termId);
+        [$streamPosition, $streamSize] = StreamRank::forStudent($child, $termId);
 
         return view('parent.child-report-card', compact(
             'child', 'terms', 'termId', 'term',
@@ -131,56 +132,4 @@ class DashboardController extends Controller
         return $child;
     }
 
-    private function computeStreamRank(User $child, ?int $termId = null): array
-    {
-        if (!$child->stream_id) {
-            return [null, null];
-        }
-
-        $streamStudentIds = User::where('usertype', 'student')
-            ->where('stream_id', $child->stream_id)
-            ->pluck('id');
-
-        $total = $streamStudentIds->count();
-
-        if ($total <= 1) {
-            return [1, $total];
-        }
-
-        $allGradesQuery = StudentGrade::whereIn('student_id', $streamStudentIds);
-        if ($termId) {
-            $allGradesQuery->where('term_id', $termId);
-        }
-
-        $allGrades = $allGradesQuery->get()->groupBy('student_id');
-
-        $averages = [];
-        foreach ($streamStudentIds as $sid) {
-            $studentGrades = $allGrades->get($sid, collect());
-            if ($studentGrades->isEmpty()) {
-                $averages[$sid] = 0.0;
-                continue;
-            }
-            $byClass      = $studentGrades->groupBy('class_id');
-            $subjectAvgs  = $byClass->map(fn($g) => $g->avg('percentage'));
-            $averages[$sid] = round($subjectAvgs->avg(), 2);
-        }
-
-        arsort($averages);
-        $position = 1;
-        $prev     = null;
-        $rank     = 1;
-        foreach ($averages as $sid => $avg) {
-            if ($prev !== null && $avg < $prev) {
-                $rank = $position;
-            }
-            if ($sid === $child->id) {
-                return [$rank, $total];
-            }
-            $prev = $avg;
-            $position++;
-        }
-
-        return [null, $total];
-    }
 }

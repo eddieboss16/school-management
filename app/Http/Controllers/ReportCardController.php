@@ -9,6 +9,7 @@ use App\Models\StudentGrade;
 use App\Models\Attendance;
 use App\Models\SchoolClass;
 use App\Models\Term;
+use App\Support\StreamRank;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -167,7 +168,7 @@ class ReportCardController extends Controller
             ? round(($presentCount / $totalAttendance) * 100, 1)
             : 0;
 
-        [$streamPosition, $streamSize] = $this->computeStreamRank($student, $termId);
+        [$streamPosition, $streamSize] = StreamRank::forStudent($student, $termId);
 
         return compact(
             'student',
@@ -183,65 +184,4 @@ class ReportCardController extends Controller
         );
     }
 
-    /**
-     * Compute this student's rank within their stream for the given term.
-     * Returns [position, total_students]. Position is 1-based.
-     * Returns [null, null] if the student has no stream assigned.
-     */
-    private function computeStreamRank(User $student, ?int $termId = null): array
-    {
-        if (!$student->stream_id) {
-            return [null, null];
-        }
-
-        // All students in the same stream
-        $streamStudentIds = User::where('usertype', 'student')
-            ->where('stream_id', $student->stream_id)
-            ->pluck('id');
-
-        $total = $streamStudentIds->count();
-
-        if ($total <= 1) {
-            return [1, $total];
-        }
-
-        // All grades for all stream students in one query
-        $allGradesQuery = StudentGrade::whereIn('student_id', $streamStudentIds);
-        if ($termId) {
-            $allGradesQuery->where('term_id', $termId);
-        }
-
-        $allGrades = $allGradesQuery->get()->groupBy('student_id');
-
-        // Compute overall average per student (average of subject averages — same formula as report card)
-        $averages = [];
-        foreach ($streamStudentIds as $sid) {
-            $studentGrades = $allGrades->get($sid, collect());
-            if ($studentGrades->isEmpty()) {
-                $averages[$sid] = 0.0;
-                continue;
-            }
-            $byClass       = $studentGrades->groupBy('class_id');
-            $subjectAvgs   = $byClass->map(fn($g) => $g->avg('percentage'));
-            $averages[$sid] = round($subjectAvgs->avg(), 2);
-        }
-
-        // Sort descending; ties share the same position (dense rank)
-        arsort($averages);
-        $position = 1;
-        $prev     = null;
-        $rank     = 1;
-        foreach ($averages as $sid => $avg) {
-            if ($prev !== null && $avg < $prev) {
-                $rank = $position;
-            }
-            if ($sid === $student->id) {
-                return [$rank, $total];
-            }
-            $prev = $avg;
-            $position++;
-        }
-
-        return [null, $total];
-    }
 }

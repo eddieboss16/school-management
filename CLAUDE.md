@@ -82,7 +82,13 @@ KCSE 12-point (`A` 80+, `A-` 75, `B+` 70, `B` 65, `B-` 60, `C+` 55, `C` 50, `C-`
 - Those Tailwind classes are returned from PHP at runtime, so `./app/**/*.php` is in `tailwind.config.js` `content`. Drop it and the utilities get purged from a production build while still looking fine in dev.
 - The grade-entry form colours scores client-side from `Grading::scaleForJs()`, so the JS cannot drift from the server.
 
+## Shared calculations
+
+Logic that more than one surface reports lives in `app/Support/` — the two entries below were each duplicated or hand-rolled per controller before, and both had drifted or broken in ways nothing caught.
+
+- **[StreamRank](app/Support/StreamRank.php)** — a student's position in their stream. `ReportCardController` and `Parent\DashboardController` both call `StreamRank::forStudent($student, $termId)`; neither keeps a private copy, and `StreamRankTest` asserts the admin, student, and parent report cards return the same position for the same student.
+- **[AdmissionNumber](app/Support/AdmissionNumber.php)** — `STD{year}{sequence}`, claimed from the `admission_sequences` counter inside a locked transaction. Never derive one by reading the highest existing student: that broke at the 999→1000 boundary, reissued soft-deleted students' numbers, and gave two simultaneous admissions the same value. `users.admission_number` is uniquely indexed, so a mistake here is a duplicate-key 500.
+
 ## Known rough edges
 
-- `computeStreamRank()` is duplicated in `ReportCardController` and `Parent\DashboardController`; keep them in sync.
-- Admission-number generation (`Admin/StudentController::store`) parses the last 3 digits of the previous `STD{year}###`, so it breaks at 1000 students in one year.
+- `email_verified_at` is **not** in `User::$fillable`, so mass assignment silently drops it. `Admin/StudentController::store` passes it to `User::create()` and it is discarded — every admin-created student has a null `email_verified_at`. This is currently inert: `User` does not implement `MustVerifyEmail` (the import is commented out), so the `verified` middleware on `/dashboard` waves everyone through. It turns into a lockout for every existing student the moment anyone implements that interface. Assign it on the model and `save()` if you actually need it set.
