@@ -3,15 +3,15 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\FeeStructure;
+use App\Models\ActivityLog;
 use App\Models\FeePayment;
-use App\Models\Term;
+use App\Models\FeeStructure;
 use App\Models\Grade;
 use App\Models\Stream;
+use App\Models\Term;
 use App\Models\User;
-use App\Models\ActivityLog;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -26,7 +26,7 @@ class FeesController extends Controller
         $selectedTermId = request('term_id', $activeTerm?->id);
 
         $structures = FeeStructure::with(['term', 'grade'])
-            ->when($selectedTermId, fn($q) => $q->where('term_id', $selectedTermId))
+            ->when($selectedTermId, fn ($q) => $q->where('term_id', $selectedTermId))
             ->orderBy('grade_id')
             ->orderBy('name')
             ->get();
@@ -38,16 +38,17 @@ class FeesController extends Controller
     {
         $terms = Term::orderBy('start_date', 'desc')->get();
         $grades = Grade::orderBy('order')->get();
+
         return view('admin.fees.structure-create', compact('terms', 'grades'));
     }
 
     public function storeStructure(Request $request)
     {
         $request->validate([
-            'term_id'     => ['required', 'exists:terms,id'],
-            'grade_id'    => ['nullable', 'exists:grades,id'],
-            'name'        => ['required', 'string', 'max:255'],
-            'amount'      => ['required', 'numeric', 'min:0'],
+            'term_id' => ['required', 'exists:terms,id'],
+            'grade_id' => ['nullable', 'exists:grades,id'],
+            'name' => ['required', 'string', 'max:255'],
+            'amount' => ['required', 'numeric', 'min:0'],
             'description' => ['nullable', 'string', 'max:500'],
         ]);
 
@@ -64,6 +65,7 @@ class FeesController extends Controller
         $structure = FeeStructure::findOrFail($id);
         $terms = Term::orderBy('start_date', 'desc')->get();
         $grades = Grade::orderBy('order')->get();
+
         return view('admin.fees.structure-edit', compact('structure', 'terms', 'grades'));
     }
 
@@ -72,10 +74,10 @@ class FeesController extends Controller
         $structure = FeeStructure::findOrFail($id);
 
         $request->validate([
-            'term_id'     => ['required', 'exists:terms,id'],
-            'grade_id'    => ['nullable', 'exists:grades,id'],
-            'name'        => ['required', 'string', 'max:255'],
-            'amount'      => ['required', 'numeric', 'min:0'],
+            'term_id' => ['required', 'exists:terms,id'],
+            'grade_id' => ['nullable', 'exists:grades,id'],
+            'name' => ['required', 'string', 'max:255'],
+            'amount' => ['required', 'numeric', 'min:0'],
             'description' => ['nullable', 'string', 'max:500'],
         ]);
 
@@ -93,6 +95,7 @@ class FeesController extends Controller
         ActivityLog::record('deleted', 'FeeStructure', $structure->id,
             "Deleted fee structure: {$structure->name}");
         $structure->delete();
+
         return redirect()->route('admin.fees.structures')->with('success', 'Fee structure deleted.');
     }
 
@@ -100,15 +103,15 @@ class FeesController extends Controller
 
     public function balances()
     {
-        $terms      = Term::orderBy('start_date', 'desc')->get();
+        $terms = Term::orderBy('start_date', 'desc')->get();
         $activeTerm = Term::activeTerm();
         $selectedTermId = request('term_id', $activeTerm?->id);
-        $grades     = Grade::orderBy('order')->get();
-        $streams    = Stream::with('grade')->orderBy('name')->get();
+        $grades = Grade::orderBy('order')->get();
+        $streams = Stream::with('grade')->orderBy('name')->get();
 
-        $filterGradeId  = request('grade_id');
+        $filterGradeId = request('grade_id');
         $filterStreamId = request('stream_id');
-        $filterStatus   = request('status'); // 'outstanding' | 'cleared'
+        $filterStatus = request('status'); // 'outstanding' | 'cleared'
 
         // ── Pre-load fee data for the selected term (2 queries total) ──
         $globalExpected = 0;
@@ -118,10 +121,10 @@ class FeesController extends Controller
         if ($selectedTermId) {
             // Query 1: all fee structures for this term
             $allFeeStructures = FeeStructure::where('term_id', $selectedTermId)->get();
-            $globalExpected   = (float) $allFeeStructures->whereNull('grade_id')->sum('amount');
+            $globalExpected = (float) $allFeeStructures->whereNull('grade_id')->sum('amount');
             $gradeExpectedMap = $allFeeStructures->whereNotNull('grade_id')
                 ->groupBy('grade_id')
-                ->map(fn($fees) => (float) $fees->sum('amount'))
+                ->map(fn ($fees) => (float) $fees->sum('amount'))
                 ->toArray();
 
             // Query 2: aggregate payments per student for this term
@@ -129,7 +132,7 @@ class FeesController extends Controller
                 ->select('student_id', DB::raw('SUM(amount) as total'))
                 ->groupBy('student_id')
                 ->pluck('total', 'student_id')
-                ->map(fn($v) => (float) $v)
+                ->map(fn ($v) => (float) $v)
                 ->toArray();
         }
 
@@ -141,7 +144,7 @@ class FeesController extends Controller
         if ($filterStreamId) {
             $query->where('stream_id', $filterStreamId);
         } elseif ($filterGradeId) {
-            $query->whereHas('stream', fn($q) => $q->where('grade_id', $filterGradeId));
+            $query->whereHas('stream', fn ($q) => $q->where('grade_id', $filterGradeId));
         }
 
         $students = $query->paginate(50)->withQueryString();
@@ -149,18 +152,18 @@ class FeesController extends Controller
         // ── Compute balances in PHP (no extra queries) ─────────────────
         $balances = [];
         foreach ($students as $student) {
-            $gradeId  = $student->stream?->grade_id;
+            $gradeId = $student->stream?->grade_id;
             $expected = $globalExpected + (float) ($gradeId && isset($gradeExpectedMap[$gradeId]) ? $gradeExpectedMap[$gradeId] : 0);
-            $paid     = (float) ($paymentsMap[$student->id] ?? 0);
-            $balance  = $expected - $paid;
+            $paid = (float) ($paymentsMap[$student->id] ?? 0);
+            $balance = $expected - $paid;
             $balances[$student->id] = compact('expected', 'paid', 'balance');
         }
 
         // ── Status filter applied in PHP after balance calculation ─────
         if ($filterStatus === 'outstanding') {
-            $students->setCollection($students->getCollection()->filter(fn($s) => $balances[$s->id]['balance'] > 0)->values());
+            $students->setCollection($students->getCollection()->filter(fn ($s) => $balances[$s->id]['balance'] > 0)->values());
         } elseif ($filterStatus === 'cleared') {
-            $students->setCollection($students->getCollection()->filter(fn($s) => $balances[$s->id]['balance'] <= 0)->values());
+            $students->setCollection($students->getCollection()->filter(fn ($s) => $balances[$s->id]['balance'] <= 0)->values());
         }
 
         return view('admin.fees.balances', compact(
@@ -180,7 +183,7 @@ class FeesController extends Controller
 
         $fees = $selectedTermId ? FeeStructure::forStudent($student, $selectedTermId) : collect();
         $payments = FeePayment::where('student_id', $studentId)
-            ->when($selectedTermId, fn($q) => $q->where('term_id', $selectedTermId))
+            ->when($selectedTermId, fn ($q) => $q->where('term_id', $selectedTermId))
             ->with(['term', 'recordedBy'])
             ->orderBy('payment_date', 'desc')
             ->get();
@@ -200,30 +203,30 @@ class FeesController extends Controller
         $student = User::where('usertype', 'student')->findOrFail($studentId);
 
         $request->validate([
-            'term_id'          => ['required', 'exists:terms,id'],
-            'amount'           => ['required', 'numeric', 'min:1'],
-            'payment_date'     => ['required', 'date'],
-            'payment_method'   => ['required', 'in:cash,mpesa,bank'],
+            'term_id' => ['required', 'exists:terms,id'],
+            'amount' => ['required', 'numeric', 'min:1'],
+            'payment_date' => ['required', 'date'],
+            'payment_method' => ['required', 'in:cash,mpesa,bank'],
             'reference_number' => ['nullable', 'string', 'max:100'],
-            'notes'            => ['nullable', 'string', 'max:500'],
+            'notes' => ['nullable', 'string', 'max:500'],
         ]);
 
         $payment = FeePayment::create([
-            'student_id'       => $student->id,
-            'term_id'          => $request->term_id,
-            'amount'           => $request->amount,
-            'payment_date'     => $request->payment_date,
-            'payment_method'   => $request->payment_method,
+            'student_id' => $student->id,
+            'term_id' => $request->term_id,
+            'amount' => $request->amount,
+            'payment_date' => $request->payment_date,
+            'payment_method' => $request->payment_method,
             'reference_number' => $request->reference_number,
-            'notes'            => $request->notes,
-            'recorded_by'      => auth()->id(),
+            'notes' => $request->notes,
+            'recorded_by' => auth()->id(),
         ]);
 
         ActivityLog::record('created', 'FeePayment', $payment->id,
             "Recorded payment of KES {$payment->amount} for {$student->name} ({$request->payment_method})");
 
         return redirect()->route('admin.fees.student', $studentId)
-            ->with('success', 'Payment of KES ' . number_format($payment->amount, 2) . ' recorded.');
+            ->with('success', 'Payment of KES '.number_format($payment->amount, 2).' recorded.');
     }
 
     public function deletePayment($paymentId)
@@ -247,7 +250,7 @@ class FeesController extends Controller
         $pdf = Pdf::loadView('admin.fees.receipt-pdf', compact('payment'))
             ->setPaper([0, 0, 226, 340], 'portrait'); // ~80mm receipt width
 
-        $filename = 'receipt-' . $payment->id . '-' . str_replace(' ', '-', strtolower($payment->student->name)) . '.pdf';
+        $filename = 'receipt-'.$payment->id.'-'.str_replace(' ', '-', strtolower($payment->student->name)).'.pdf';
 
         return $pdf->download($filename);
     }
@@ -257,31 +260,31 @@ class FeesController extends Controller
     public function exportBalancesCsv(): StreamedResponse
     {
         $termId = request('term_id');
-        $term   = $termId ? Term::findOrFail($termId) : Term::activeTerm();
+        $term = $termId ? Term::findOrFail($termId) : Term::activeTerm();
 
         // Pre-load all fee structures and payments in 2 queries
-        $globalExpected   = 0;
+        $globalExpected = 0;
         $gradeExpectedMap = [];
-        $paymentsMap      = [];
+        $paymentsMap = [];
 
         if ($term) {
             $allFeeStructures = FeeStructure::where('term_id', $term->id)->get();
-            $globalExpected   = (float) $allFeeStructures->whereNull('grade_id')->sum('amount');
+            $globalExpected = (float) $allFeeStructures->whereNull('grade_id')->sum('amount');
             $gradeExpectedMap = $allFeeStructures->whereNotNull('grade_id')
                 ->groupBy('grade_id')
-                ->map(fn($fees) => (float) $fees->sum('amount'))
+                ->map(fn ($fees) => (float) $fees->sum('amount'))
                 ->toArray();
 
             $paymentsMap = FeePayment::where('term_id', $term->id)
                 ->select('student_id', DB::raw('SUM(amount) as total'))
                 ->groupBy('student_id')
                 ->pluck('total', 'student_id')
-                ->map(fn($v) => (float) $v)
+                ->map(fn ($v) => (float) $v)
                 ->toArray();
         }
 
         $students = User::where('usertype', 'student')->with('stream.grade')->orderBy('name')->get();
-        $filename = 'fee-balances-' . ($term ? str_replace(' ', '-', strtolower($term->name)) : 'all') . '.csv';
+        $filename = 'fee-balances-'.($term ? str_replace(' ', '-', strtolower($term->name)) : 'all').'.csv';
 
         $response = new StreamedResponse(function () use ($students, $term, $globalExpected, $gradeExpectedMap, $paymentsMap) {
             $handle = fopen('php://output', 'w');
@@ -290,15 +293,15 @@ class FeesController extends Controller
             fputcsv($handle, ['Adm No.', 'Name', 'Class', 'Expected (KES)', 'Paid (KES)', 'Balance (KES)', 'Status']);
 
             foreach ($students as $student) {
-                $gradeId  = $student->stream?->grade_id;
+                $gradeId = $student->stream?->grade_id;
                 $expected = $globalExpected + (float) ($gradeId && isset($gradeExpectedMap[$gradeId]) ? $gradeExpectedMap[$gradeId] : 0);
-                $paid     = (float) ($paymentsMap[$student->id] ?? 0);
-                $balance  = $expected - $paid;
+                $paid = (float) ($paymentsMap[$student->id] ?? 0);
+                $balance = $expected - $paid;
 
                 fputcsv($handle, [
                     $student->admission_number ?? '',
                     $student->name,
-                    $student->stream ? $student->stream->grade->name . ' ' . $student->stream->name : 'Unassigned',
+                    $student->stream ? $student->stream->grade->name.' '.$student->stream->name : 'Unassigned',
                     number_format($expected, 2),
                     number_format($paid, 2),
                     number_format($balance, 2),
@@ -310,7 +313,8 @@ class FeesController extends Controller
         });
 
         $response->headers->set('Content-Type', 'text/csv');
-        $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
+        $response->headers->set('Content-Disposition', 'attachment; filename="'.$filename.'"');
+
         return $response;
     }
 }
