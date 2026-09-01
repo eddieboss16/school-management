@@ -13,22 +13,128 @@ composer dev            # server + queue:listen + pail logs + vite, all concurre
 php artisan serve       # server only
 npm run dev             # vite only
 
+composer test           # ← USE THIS. config:clear, then artisan test. See the warning below.
 php artisan test                                  # full suite (Pest); 251 tests currently pass
 php artisan test tests/Feature/FeeBalanceTest.php # single file
 php artisan test --filter="teacher can enter grades for their own class"
-composer test           # config:clear then artisan test
 
-php artisan migrate && php artisan db:seed   # grades 1-9, streams A-C, subjects, admin@school.com / Admin@1234
+php artisan migrate && php artisan db:seed   # grades 1-9, streams A-C, subjects, admin@school.com / Admin@123
 ./vendor/bin/pint       # formatter (laravel preset per .styleci.yml; no_unused_imports disabled)
 npm run build
 ```
 
-Tests run on in-memory SQLite (forced in `phpunit.xml`) regardless of the `.env` DB. No CI is configured.
+> ## ⚠️ Never run `php artisan test` while the config is cached — it drops the dev database
+>
+> `phpunit.xml` forces the test DB to SQLite `:memory:` using **env vars** (`DB_CONNECTION`, `DB_DATABASE`). **A cached config never consults env.** So with `bootstrap/cache/config.php` present, the suite silently resolves to the real MySQL dev database — verified inside a running test:
+>
+> ```
+> config cache present       : YES
+> config('database.default') : mysql               ← not sqlite
+> database name              : high_school_management   ← the real dev DB
+> $_ENV['DB_CONNECTION']     : sqlite              ← set, and ignored
+> ```
+>
+> Almost every Feature test uses `RefreshDatabase`, which **drops every table** before migrating. Running the suite in that state destroys the dev database with no warning and no error — it looks like a normal green run.
+>
+> **Rules:**
+> 1. **Use `composer test` locally, never `php artisan test` directly** — `composer test` runs `config:clear` first, and that is a safety guard, not a style choice.
+> 2. `php artisan test` is only safe if you have *just* run `config:clear` yourself.
+> 3. **Config caching stays OFF for local dev.** Cache only for a production deploy or a deliberate perf-testing session, and `config:clear` immediately afterwards.
+>
+> Same root cause as the `.env` trap below: once config is cached, `.env` and env vars stop being read at all.
+
+Tests run on in-memory SQLite (forced in `phpunit.xml`) regardless of the `.env` DB — **but only while config is not cached** (see the warning above). No CI is configured.
 
 Two traps around the dev database:
 
 - Local `.env` points at MySQL **`high_school_management`** — *not* `school_management`, which the repo name and this file previously implied. If `artisan migrate` reports "Nothing to migrate" against a database you can see is empty, you are looking at the wrong schema; `env('DB_DATABASE')` is the authority. (Laravel's dotenv is immutable, so a real OS env var of the same name silently wins over `.env` too.)
 - `database/database.sqlite` exists but is a **stale stub**: 3 of 21 migrations applied, no `enrollments`/`student_grades` tables, zero rows. It is neither what tests use nor a working dev database — do not point anything at it expecting it to work.
+
+## Config and route caching
+
+```bash
+php artisan config:cache && php artisan route:cache   # required before any production deploy
+php artisan config:clear  && php artisan route:clear  # undo, and see the trap below
+```
+
+**Required before any production deploy.** Without it every request re-parses ~20 config files and re-registers every route. Measured on this project through `php artisan serve` (median of 9 warm requests, identical data):
+
+| Page | uncached | cached | delta |
+|---|---|---|---|
+| `/login` (302) | 241 ms | 167 ms | **−31%** |
+| `/admin/dashboard` | 232 ms | 195 ms | −16% |
+| `/admin/reports/student/{id}` | 240 ms | 195 ms | −19% |
+| `/admin/reports` | 217 ms | 194 ms | −11% |
+| `/admin/fees/balances` | 283 ms | 254 ms | −10% |
+
+Framework bootstrap alone drops from ~47 ms to ~10–18 ms. It does **not** fix everything: the Composer autoloader is ~60–100 ms of the remaining cost and is unaffected, and `php artisan serve` is single-threaded regardless (see below).
+
+> **Trap 1: once config is cached, `.env` is no longer read.** Laravel loads `bootstrap/cache/config.php` and ignores the file entirely, so editing `.env` — DB name, `APP_DEBUG`, mail, queue — silently changes nothing until you run `php artisan config:clear`. A wrong-database or stale-debug symptom that survives an obviously-correct `.env` edit is this, every time.
+
+> **Trap 2 — the destructive one:** a cached config also sends `php artisan test` at the MySQL dev database, where `RefreshDatabase` drops every table. This is the ⚠️ warning under [Commands](#commands) — read it there.
+
+**Therefore: leave config caching OFF locally.** It is a deploy step. If you cache locally to measure something, clear it again immediately afterwards.
+
+Verify the current state with `php artisan about --only=cache`, which reports `Config` and `Routes` as `CACHED` / `NOT CACHED`.
+
+## Serving locally through Apache instead of `artisan serve`
+
+`php artisan serve` is PHP's built-in server: **single-threaded, one request at a time.** Measured: 6 parallel requests to `/admin/dashboard` took 1.56 s wall versus 1.99 s sequentially — essentially no concurrency. Fine for ordinary work, useless for anything touching parallel requests, locking, or session contention.
+
+XAMPP's Apache serves the same code properly. Appended to `C:\xampp\apache\conf\extra\httpd-vhosts.conf` (already included by `httpd.conf`; a timestamped `.bak` of the original sits beside it):
+
+```apache
+Listen 8080
+
+<VirtualHost *:8080>
+    ServerName school.localhost
+    DocumentRoot "c:/dev/school-management-system/public"
+
+    <Directory "c:/dev/school-management-system/public">
+        Options Indexes FollowSymLinks
+        AllowOverride All          # Laravel's public/.htaccess owns the rewrite; without All every route 404s
+        Require local              # dev only: loopback connections only
+    </Directory>
+
+    ErrorLog  "logs/school-management-error.log"
+    CustomLog "logs/school-management-access.log" combined
+</VirtualHost>
+```
+
+Port **8080**, so the default XAMPP site on `:80` is untouched and no hosts-file entry is needed — browse `http://localhost:8080/`. Validate with `C:\xampp\apache\bin\httpd.exe -t` before restarting.
+
+### XAMPP shipped with OPcache completely unloaded — now enabled
+
+Worth knowing because it made the vhost look like a bad idea. XAMPP's `php.ini` had **no `zend_extension=opcache` line at all** (not merely `opcache.enable=0` — the extension was never loaded), so Apache recompiled every PHP file on every request: ~3349 files for this project. `C:\php84`, which the CLI and `artisan serve` use, has OPcache on by default, so the two front doors were not comparable.
+
+Measured before the fix: **Apache was 2.23× slower per request** than `artisan serve` (769 ms vs 345 ms), which made it the worse option despite handling concurrency better.
+
+Fixed by appending an OPcache block to the **end** of `C:\xampp\php\php.ini` (later directives win, so the commented-out defaults higher up are left untouched; a timestamped `.bak` sits beside the file). `opcache.validate_timestamps=1` + `revalidate_freq=0` so edited files are picked up immediately — do not tighten those on a dev box. **Apache must be restarted for `php.ini` changes to load.**
+
+After enabling, measured interleaved (requests alternated between the two servers so machine-wide drift hits both equally):
+
+| Page | artisan serve | Apache | ratio |
+|---|---|---|---|
+| `/login` | 1974 ms | 1414 ms | **0.72×** |
+| `/admin/dashboard` | 1486 ms | 1445 ms | **0.97×** |
+| report card HTML | 1413 ms | 1596 ms | **1.13×** |
+
+The 2.23× penalty is gone — roughly parity, and Apache now wins on concurrency outright:
+
+| Server | 6 seq | 6 par | speedup | 12 seq | 12 par | speedup |
+|---|---|---|---|---|---|---|
+| `artisan serve` | 13889 ms | 11440 ms | 1.21× | 27340 ms | 27831 ms | **0.98× — none** |
+| Apache :8080 | 11776 ms | 8088 ms | 1.46× | 22760 ms | 15527 ms | **1.47×** |
+
+At 12 concurrent requests `artisan serve` gets *no* benefit from parallelism at all, while Apache holds ~1.47×.
+
+> Those absolute numbers are inflated ~8× versus the earlier figures in this file: Windows Defender and SearchIndexer were saturating the CPU during that run. **Only the ratios from that table are meaningful** — always re-measure both servers in the same window rather than comparing against a number recorded earlier, and check `MsMpEng` CPU before trusting any timing on this box.
+
+Two more things to know:
+
+- **Apache here is not a Windows service** — it is started by `xampp-control.exe`, so `httpd -k restart` fails with `No installed service named "Apache2.4"`. Restart it from the XAMPP Control Panel.
+- **Apache runs XAMPP's own PHP 8.2.12**, not the `C:\php84` (8.4.23) binary the CLI and `artisan serve` use. Both clear the project's 8.2+ floor, but a version-sensitive bug can appear under one and not the other — check which PHP served a page before chasing it.
+- Restarting the XAMPP stack restarts **MySQL** too. Requests issued while it is still coming up fail with `No application encryption key has been specified` logged as `production.ERROR` — misleading, but transient. Give MySQL a few seconds before measuring anything.
 
 ## Domain vocabulary (easy to get wrong)
 
